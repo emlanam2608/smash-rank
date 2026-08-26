@@ -1,0 +1,35 @@
+{
+  "name": "smash-rank",
+  "version": "1.0.0",
+  "description": "PWA badminton player ranking system using TrueSkill algorithm",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "next": "^14.2.0",
+    "typescript": "^5.4.5",
+    "firebase": "^10.8.0",
+    "ts-trueskill": "^1.1.3",
+    "lucide-react": "^0.408.0",
+    "tailwindcss": "^3.4.3",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.38",
+    "clsx": "^2.1.0",
+    "tailwind-merge": "^2.3.0",
+    "class-variance-authority": "^0.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.5",
+    "@types/react": "^18.2.48",
+    "@types/react-dom": "^18.2.18",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "^14.2.0"
+  }
+}
