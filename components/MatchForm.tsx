@@ -21,14 +21,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { useSession } from "@/context/SessionContext";
 import { db, isFirebaseConfigured } from "@/lib/firebase";
 import { recordMatch, USERS_COLLECTION, userFromSnapshot } from "@/lib/matches";
+import { sessionFromSnapshot, SESSIONS_COLLECTION } from "@/lib/sessions";
 import {
   MAX_MATCH_SCORE,
   MIN_MATCH_SCORE,
-  calculateMovMultiplier,
 } from "@/lib/trueskill";
-import type { MatchType, User } from "@/lib/types";
+import type { MatchType, Session, User } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 type SlotKey = "a1" | "a2" | "b1" | "b2";
@@ -100,8 +101,13 @@ function ScoreStepper({
 export function MatchForm() {
   const t = useTranslations("match");
   const tAuth = useTranslations("auth");
+  const tSession = useTranslations("session");
   const { user, configured } = useAuth();
+  const { activeSessionId, setActiveSessionId } = useSession();
   const [players, setPlayers] = useState<User[]>([]);
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [selectedSessionId, setSelectedSessionId] = useState("");
+  const [showAllPlayers, setShowAllPlayers] = useState(false);
   const [matchType, setMatchType] = useState<MatchType>("2v2");
   const [slots, setSlots] = useState(EMPTY_SLOTS);
   const [scoreA, setScoreA] = useState(0);
@@ -122,18 +128,64 @@ export function MatchForm() {
     });
   }, []);
 
+  useEffect(() => {
+    if (!isFirebaseConfigured() || !db) return;
+    return onSnapshot(query(collection(db, SESSIONS_COLLECTION)), (snapshot) => {
+      const next = snapshot.docs
+        .map((docSnap) =>
+          sessionFromSnapshot(
+            docSnap.id,
+            docSnap.data() as Record<string, unknown>,
+          ),
+        )
+        .filter((session) => session.status === "active")
+        .sort((a, b) => {
+          const aCreatedAt =
+            a.createdAt && typeof (a.createdAt as { toMillis?: unknown }).toMillis === "function"
+              ? (a.createdAt as { toMillis: () => number }).toMillis()
+              : 0;
+          const bCreatedAt =
+            b.createdAt && typeof (b.createdAt as { toMillis?: unknown }).toMillis === "function"
+              ? (b.createdAt as { toMillis: () => number }).toMillis()
+              : 0;
+          return bCreatedAt - aCreatedAt;
+        });
+      setSessions(next);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!sessions.length) {
+      setSelectedSessionId("");
+      return;
+    }
+    const nextId = sessions.some((session) => session.id === activeSessionId)
+      ? activeSessionId ?? sessions[0].id
+      : sessions[0].id;
+    setSelectedSessionId(nextId);
+    if (nextId !== activeSessionId) setActiveSessionId(nextId);
+  }, [activeSessionId, sessions, setActiveSessionId]);
+
   const selectedIds = useMemo(
     () => ACTIVE_SLOTS[matchType].map((slot) => slots[slot]).filter(Boolean),
     [matchType, slots],
   );
+  const selectedSession = sessions.find((session) => session.id === selectedSessionId);
   const playerById = useMemo(() => new Map(players.map((player) => [player.id, player])), [players]);
+  const selectablePlayers = useMemo(
+    () =>
+      selectedSession && !showAllPlayers
+        ? players.filter((player) => selectedSession.playerIds.includes(player.id))
+        : players,
+    [players, selectedSession, showAllPlayers],
+  );
   const filteredPlayers = useMemo(() => {
     const term = search.trim().toLowerCase();
-    return players.filter((player) => {
+    return selectablePlayers.filter((player) => {
       if (selectedIds.includes(player.id) && pickerSlot && slots[pickerSlot] !== player.id) return false;
       return !term || player.displayName.toLowerCase().includes(term);
     });
-  }, [pickerSlot, players, search, selectedIds, slots]);
+  }, [pickerSlot, search, selectablePlayers, selectedIds, slots]);
 
   function changeMatchType(nextType: MatchType) {
     setMatchType(nextType);
@@ -170,7 +222,14 @@ export function MatchForm() {
 
     setSubmitting(true);
     try {
-      await recordMatch({ matchType, teamAIds, teamBIds, scoreA, scoreB });
+      await recordMatch({
+        matchType,
+        teamAIds,
+        teamBIds,
+        scoreA,
+        scoreB,
+        sessionId: selectedSession?.id,
+      });
       setSlots(EMPTY_SLOTS);
       setScoreA(0);
       setScoreB(0);
@@ -204,7 +263,6 @@ export function MatchForm() {
   }
 
   const outcomePreview = scoreA === scoreB ? t("draw") : scoreA > scoreB ? t("winnerA") : t("winnerB");
-  const movMultiplier = calculateMovMultiplier(scoreA, scoreB);
 
   return (
     <Card>
@@ -217,6 +275,44 @@ export function MatchForm() {
           <p className="py-6 text-center text-sm text-slate-400">{tAuth("signInToRecord")}</p>
         ) : (
           <form onSubmit={onSubmit} className="space-y-5">
+            <div className="space-y-2">
+              {selectedSession ? <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm font-semibold text-emerald-300">{tSession("activeIndicator", { title: selectedSession.title })}</div> : null}
+              <label className="text-xs font-semibold uppercase tracking-wide text-slate-400" htmlFor="session-selector">
+                {tSession("selector")}
+              </label>
+              <select
+                id="session-selector"
+                value={selectedSessionId}
+                onChange={(event) => {
+                  setSelectedSessionId(event.target.value);
+                  setActiveSessionId(event.target.value || null);
+                  setShowAllPlayers(false);
+                }}
+                className="flex h-11 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 text-base text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+              >
+                <option value="">{tSession("noSession")}</option>
+                {sessions.map((session) => (
+                  <option key={session.id} value={session.id}>
+                    {session.title}
+                  </option>
+                ))}
+              </select>
+              {selectedSession ? (
+                <label className="flex cursor-pointer items-center gap-2 text-sm text-slate-300">
+                  <input
+                    type="checkbox"
+                    checked={showAllPlayers}
+                    onChange={(event) => setShowAllPlayers(event.target.checked)}
+                    className="h-4 w-4 rounded border-slate-600 accent-emerald-500"
+                  />
+                  {tSession("showAllPlayers")}
+                </label>
+              ) : null}
+              {selectedSession && !showAllPlayers ? (
+                <p className="text-xs text-slate-400">{tSession("filterHint")}</p>
+              ) : null}
+            </div>
+
             <div className="grid grid-cols-2 gap-2 rounded-2xl bg-slate-950/60 p-1 ring-1 ring-slate-800" role="radiogroup" aria-label={t("matchType")}>
               {(["1v1", "2v2"] as const).map((option) => (
                 <button
@@ -251,12 +347,7 @@ export function MatchForm() {
               <ScoreStepper label={t("scoreB")} value={scoreB} onChange={setScoreB} />
             </div>
 
-            <div className="flex items-center justify-center gap-2">
-              <p className="text-sm font-semibold text-emerald-400">{outcomePreview}</p>
-              <span className="rounded-full bg-slate-800 px-2 py-1 text-xs font-semibold text-slate-300">
-                {t("mov", { value: movMultiplier.toFixed(2) })}
-              </span>
-            </div>
+            <p className="text-center text-sm font-semibold text-emerald-400">{outcomePreview}</p>
             {message ? <p className={cn("text-center text-sm", message.type === "success" ? "text-emerald-400" : "text-rose-400")} role="status">{message.text}</p> : null}
             <Button type="submit" size="lg" className="w-full" disabled={submitting}>
               {submitting ? t("submitting") : t("submit")}

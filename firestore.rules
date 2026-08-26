@@ -33,5 +33,32 @@ service cloud.firestore {
         && request.resource.data.movMultiplier is number;
       allow update, delete: if false;
     }
+
+    match /sessions/{sessionId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.hostId == request.auth.uid
+        && request.resource.data.status == 'active'
+        && request.resource.data.code is string
+        && request.resource.data.code.size() == 4
+        && request.resource.data.closedAt == null
+        && request.resource.data.playerIds.size() == 1
+        && request.resource.data.playerIds[0] == request.auth.uid;
+      allow update: if signedIn() && (
+        (
+          resource.data.hostId == request.auth.uid
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title', 'status', 'closedAt'])
+          && (request.resource.data.status == resource.data.status || request.resource.data.status == 'closed')
+        )
+        || (
+          resource.data.status == 'active'
+          &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['playerIds'])
+          && request.resource.data.playerIds.hasAll(resource.data.playerIds)
+          && request.resource.data.playerIds.hasAny([request.auth.uid])
+        )
+      );
+      allow delete: if false;
+    }
   }
 }

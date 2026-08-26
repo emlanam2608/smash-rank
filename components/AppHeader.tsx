@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { AuthButton } from '@/components/AuthButton';
+import { CreateSessionModal } from '@/components/session/CreateSessionModal';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 
 export function AppHeader() {
@@ -16,6 +17,7 @@ export function AppHeader() {
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <LanguageSwitcher />
+          <CreateSessionModal />
           <AuthButton />
         </div>
       </div>

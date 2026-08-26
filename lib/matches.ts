@@ -106,6 +106,7 @@ export async function recordMatch(params: {
   teamBIds: string[];
   scoreA: number;
   scoreB: number;
+  sessionId?: string;
 }): Promise<string> {
   if (!isFirebaseConfigured() || !db || !auth) {
     throw new Error("FIREBASE_UNAVAILABLE");
@@ -149,6 +150,7 @@ export async function recordMatch(params: {
   ): TeamMember[] =>
     players.map((player, index) => ({
       userId: player.id,
+      displayName: player.displayName,
       preRank: player.displayRank,
       postRank: calculateDisplayRank(ratings[index].mu, ratings[index].sigma),
     }));
@@ -167,6 +169,7 @@ export async function recordMatch(params: {
     scoreB,
     winner: result.winner,
     movMultiplier: result.movMultiplier,
+    ...(params.sessionId ? { sessionId: params.sessionId } : {}),
   });
 
   const updateTeam = (
