@@ -8,20 +8,17 @@ export interface User {
   matchesPlayed: number;
   wins: number;
   losses: number;
-  createdAt: number;
-  updatedAt: number;
 }
 
 export interface TeamMember {
   userId: string;
-  displayName: string;
   preRank: number;
   postRank: number;
 }
 
 export interface Match {
   id: string;
-  createdAt: number;
+  createdAt: unknown;
   teamA: TeamMember[];
   teamB: TeamMember[];
   scoreA: number;
@@ -38,3 +35,5 @@ export interface MatchResult {
   teamA: TrueSkillRating[];
   teamB: TrueSkillRating[];
 }
+
+export type PlayerRatingInput = TrueSkillRating;

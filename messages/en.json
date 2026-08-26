@@ -1,0 +1,78 @@
+{
+  "app": {
+    "name": "SmashRank",
+    "tagline": "Badminton skill ratings",
+    "installHint": "Add SmashRank to your home screen for one-tap match tracking."
+  },
+  "nav": {
+    "leaderboard": "Leaderboard",
+    "recordMatch": "Record Match",
+    "aria": "Main navigation"
+  },
+  "auth": {
+    "signIn": "Sign in with Google",
+    "signOut": "Sign out",
+    "signingIn": "Signing in…",
+    "signedInAs": "Signed in as {name}",
+    "signInToRecord": "Sign in to record a match.",
+    "error": "Could not sign in. Try again."
+  },
+  "leaderboard": {
+    "title": "Leaderboard",
+    "subtitle": "Live TrueSkill rankings",
+    "rank": "Rank",
+    "player": "Player",
+    "rating": "Rating",
+    "matches": "Matches",
+    "winLoss": "W–L",
+    "wins": "Wins",
+    "losses": "Losses",
+    "empty": "No players yet. Sign in to join the ladder.",
+    "loading": "Loading rankings…",
+    "error": "Could not load the leaderboard.",
+    "you": "You",
+    "top1": "Gold",
+    "top2": "Silver",
+    "top3": "Bronze"
+  },
+  "match": {
+    "title": "Record Match",
+    "subtitle": "2v2 doubles — scores update ratings instantly",
+    "teamA": "Team A",
+    "teamB": "Team B",
+    "player1": "Player 1",
+    "player2": "Player 2",
+    "score": "Score",
+    "scoreA": "Team A score",
+    "scoreB": "Team B score",
+    "submit": "Save match",
+    "submitting": "Saving…",
+    "success": "Match saved. Rankings updated.",
+    "selectPlayer": "Select player",
+    "searchPlayers": "Search players",
+    "noPlayersFound": "No matching players",
+    "noPlayers": "No registered players yet. Everyone who signs in appears here.",
+    "winnerA": "Team A wins",
+    "winnerB": "Team B wins",
+    "delta": "{value}",
+    "errors": {
+      "incomplete": "Pick four players and enter both scores.",
+      "duplicate": "Each player can only appear once.",
+      "tie": "Matches cannot end in a tie.",
+      "range": "Scores must be between 0 and 30.",
+      "save": "Could not save the match. Try again."
+    }
+  },
+  "rank": {
+    "label": "Rank {value}",
+    "provisional": "Provisional",
+    "established": "Established",
+    "badgeAria": "Display rank {value}"
+  },
+  "language": {
+    "label": "Language",
+    "switchTo": "Switch language",
+    "en": "English",
+    "vi": "Tiếng Việt"
+  }
+}

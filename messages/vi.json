@@ -1,0 +1,78 @@
+{
+  "app": {
+    "name": "SmashRank",
+    "tagline": "Xếp hạng kỹ năng cầu lông",
+    "installHint": "Thêm SmashRank vào màn hình chính để ghi trận nhanh hơn."
+  },
+  "nav": {
+    "leaderboard": "Bảng xếp hạng",
+    "recordMatch": "Ghi trận",
+    "aria": "Điều hướng chính"
+  },
+  "auth": {
+    "signIn": "Đăng nhập với Google",
+    "signOut": "Đăng xuất",
+    "signingIn": "Đang đăng nhập…",
+    "signedInAs": "Đã đăng nhập: {name}",
+    "signInToRecord": "Đăng nhập để ghi trận đấu.",
+    "error": "Không đăng nhập được. Thử lại."
+  },
+  "leaderboard": {
+    "title": "Bảng xếp hạng",
+    "subtitle": "Xếp hạng TrueSkill trực tiếp",
+    "rank": "Hạng",
+    "player": "Vận động viên",
+    "rating": "Điểm",
+    "matches": "Trận",
+    "winLoss": "T–B",
+    "wins": "Thắng",
+    "losses": "Thua",
+    "empty": "Chưa có người chơi. Đăng nhập để tham gia bảng xếp hạng.",
+    "loading": "Đang tải bảng xếp hạng…",
+    "error": "Không tải được bảng xếp hạng.",
+    "you": "Bạn",
+    "top1": "Vàng",
+    "top2": "Bạc",
+    "top3": "Đồng"
+  },
+  "match": {
+    "title": "Ghi trận",
+    "subtitle": "Đôi 2v2 — tỷ số cập nhật xếp hạng ngay",
+    "teamA": "Đội A",
+    "teamB": "Đội B",
+    "player1": "Người chơi 1",
+    "player2": "Người chơi 2",
+    "score": "Tỷ số",
+    "scoreA": "Điểm đội A",
+    "scoreB": "Điểm đội B",
+    "submit": "Lưu trận",
+    "submitting": "Đang lưu…",
+    "success": "Đã lưu trận. Xếp hạng đã cập nhật.",
+    "selectPlayer": "Chọn người chơi",
+    "searchPlayers": "Tìm người chơi",
+    "noPlayersFound": "Không tìm thấy người chơi",
+    "noPlayers": "Chưa có người chơi. Ai đăng nhập sẽ xuất hiện tại đây.",
+    "winnerA": "Đội A thắng",
+    "winnerB": "Đội B thắng",
+    "delta": "{value}",
+    "errors": {
+      "incomplete": "Chọn đủ bốn người chơi và nhập cả hai tỷ số.",
+      "duplicate": "Mỗi người chỉ được xuất hiện một lần.",
+      "tie": "Trận đấu không được hòa.",
+      "range": "Tỷ số phải từ 0 đến 30.",
+      "save": "Không lưu được trận. Thử lại."
+    }
+  },
+  "rank": {
+    "label": "Hạng {value}",
+    "provisional": "Tạm thời",
+    "established": "Ổn định",
+    "badgeAria": "Điểm xếp hạng {value}"
+  },
+  "language": {
+    "label": "Ngôn ngữ",
+    "switchTo": "Đổi ngôn ngữ",
+    "en": "English",
+    "vi": "Tiếng Việt"
+  }
+}

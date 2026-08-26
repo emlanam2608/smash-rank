@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="SmashRank">
+  <rect width="512" height="512" rx="96" fill="#022c22"/>
+  <circle cx="256" cy="256" r="168" fill="#10b981"/>
+  <path fill="#022c22" d="M256 128c18 42 48 64 92 72-28 12-52 36-64 72-12-36-36-60-64-72 44-8 74-30 92-72z"/>
+  <rect x="248" y="272" width="16" height="112" rx="8" fill="#022c22"/>
+</svg>

@@ -1,0 +1,26 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    match /users/{userId} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.auth.uid == userId;
+      allow update: if signedIn();
+    }
+
+    match /matches/{matchId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.teamA.size() == 2
+        && request.resource.data.teamB.size() == 2
+        && request.resource.data.scoreA is int
+        && request.resource.data.scoreB is int
+        && request.resource.data.scoreA != request.resource.data.scoreB
+        && request.resource.data.winner in ['teamA', 'teamB'];
+      allow update, delete: if false;
+    }
+  }
+}
