@@ -24,7 +24,7 @@
     "player": "Player",
     "rating": "Rating",
     "matches": "Matches",
-    "winLoss": "W–L",
+    "winRate": "Win rate",
     "wins": "Wins",
     "losses": "Losses",
     "empty": "No players yet. Sign in to join the ladder.",
@@ -37,7 +37,10 @@
   },
   "match": {
     "title": "Record Match",
-    "subtitle": "2v2 doubles — scores update ratings instantly",
+    "subtitle": "Singles and doubles — scores update ratings instantly",
+    "matchType": "Match type",
+    "1v1": "1v1 Singles",
+    "2v2": "2v2 Doubles",
     "teamA": "Team A",
     "teamB": "Team B",
     "player1": "Player 1",
@@ -54,11 +57,12 @@
     "noPlayers": "No registered players yet. Everyone who signs in appears here.",
     "winnerA": "Team A wins",
     "winnerB": "Team B wins",
+    "draw": "Draw",
+    "mov": "MoV ×{value}",
     "delta": "{value}",
     "errors": {
-      "incomplete": "Pick four players and enter both scores.",
+      "incomplete": "Select every player and enter both scores.",
       "duplicate": "Each player can only appear once.",
-      "tie": "Matches cannot end in a tie.",
       "range": "Scores must be between 0 and 30.",
       "save": "Could not save the match. Try again."
     }

@@ -19,11 +19,13 @@ export interface TeamMember {
 export interface Match {
   id: string;
   createdAt: unknown;
+  matchType: MatchType;
   teamA: TeamMember[];
   teamB: TeamMember[];
   scoreA: number;
   scoreB: number;
-  winner: 'teamA' | 'teamB';
+  winner: MatchWinner;
+  movMultiplier: number;
 }
 
 export interface TrueSkillRating {
@@ -34,6 +36,10 @@ export interface TrueSkillRating {
 export interface MatchResult {
   teamA: TrueSkillRating[];
   teamB: TrueSkillRating[];
+  winner: MatchWinner;
+  movMultiplier: number;
 }
 
 export type PlayerRatingInput = TrueSkillRating;
+export type MatchType = "1v1" | "2v2";
+export type MatchWinner = "teamA" | "teamB" | "draw";

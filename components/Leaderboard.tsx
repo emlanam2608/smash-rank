@@ -100,12 +100,16 @@ export function Leaderboard() {
                   <th className="hidden py-2 pr-2 font-semibold sm:table-cell">
                     {t("matches")}
                   </th>
-                  <th className="py-2 font-semibold">{t("winLoss")}</th>
+                  <th className="py-2 font-semibold">{t("winRate")}</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map(({ player, place }) => {
                   const isYou = user?.uid === player.id;
+                  const winRate =
+                    player.matchesPlayed > 0
+                      ? Math.round((player.wins / player.matchesPlayed) * 100)
+                      : 0;
                   return (
                     <tr
                       key={player.id}
@@ -172,7 +176,7 @@ export function Leaderboard() {
                         {player.matchesPlayed}
                       </td>
                       <td className="py-3 align-middle tabular-nums text-slate-300">
-                        {player.wins}–{player.losses}
+                        {winRate}%
                       </td>
                     </tr>
                   );

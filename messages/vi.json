@@ -24,7 +24,7 @@
     "player": "Vận động viên",
     "rating": "Điểm",
     "matches": "Trận",
-    "winLoss": "T–B",
+    "winRate": "Tỷ lệ thắng",
     "wins": "Thắng",
     "losses": "Thua",
     "empty": "Chưa có người chơi. Đăng nhập để tham gia bảng xếp hạng.",
@@ -37,7 +37,10 @@
   },
   "match": {
     "title": "Ghi trận",
-    "subtitle": "Đôi 2v2 — tỷ số cập nhật xếp hạng ngay",
+    "subtitle": "Đơn và đôi — tỷ số cập nhật xếp hạng ngay",
+    "matchType": "Loại trận",
+    "1v1": "Đơn 1v1",
+    "2v2": "Đôi 2v2",
     "teamA": "Đội A",
     "teamB": "Đội B",
     "player1": "Người chơi 1",
@@ -54,11 +57,12 @@
     "noPlayers": "Chưa có người chơi. Ai đăng nhập sẽ xuất hiện tại đây.",
     "winnerA": "Đội A thắng",
     "winnerB": "Đội B thắng",
+    "draw": "Hòa",
+    "mov": "Biên độ ×{value}",
     "delta": "{value}",
     "errors": {
-      "incomplete": "Chọn đủ bốn người chơi và nhập cả hai tỷ số.",
+      "incomplete": "Chọn đủ người chơi và nhập cả hai tỷ số.",
       "duplicate": "Mỗi người chỉ được xuất hiện một lần.",
-      "tie": "Trận đấu không được hòa.",
       "range": "Tỷ số phải từ 0 đến 30.",
       "save": "Không lưu được trận. Thử lại."
     }

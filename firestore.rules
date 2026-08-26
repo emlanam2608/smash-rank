@@ -14,12 +14,23 @@ service cloud.firestore {
     match /matches/{matchId} {
       allow read: if signedIn();
       allow create: if signedIn()
-        && request.resource.data.teamA.size() == 2
-        && request.resource.data.teamB.size() == 2
+        && request.resource.data.matchType in ['1v1', '2v2']
+        && (
+          (request.resource.data.matchType == '1v1'
+            && request.resource.data.teamA.size() == 1
+            && request.resource.data.teamB.size() == 1)
+          || (request.resource.data.matchType == '2v2'
+            && request.resource.data.teamA.size() == 2
+            && request.resource.data.teamB.size() == 2)
+        )
         && request.resource.data.scoreA is int
         && request.resource.data.scoreB is int
-        && request.resource.data.scoreA != request.resource.data.scoreB
-        && request.resource.data.winner in ['teamA', 'teamB'];
+        && request.resource.data.scoreA >= 0
+        && request.resource.data.scoreA <= 30
+        && request.resource.data.scoreB >= 0
+        && request.resource.data.scoreB <= 30
+        && request.resource.data.winner in ['teamA', 'teamB', 'draw']
+        && request.resource.data.movMultiplier is number;
       allow update, delete: if false;
     }
   }

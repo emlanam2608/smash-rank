@@ -16,9 +16,8 @@ import {
   MIN_MATCH_SCORE,
   calculateDisplayRank,
   calculateMatchResult,
-  getMatchWinner,
 } from "./trueskill";
-import type { TeamMember, User } from "./types";
+import type { MatchType, TeamMember, User } from "./types";
 
 export const USERS_COLLECTION = "users";
 export const MATCHES_COLLECTION = "matches";
@@ -33,14 +32,16 @@ function assertScore(score: number) {
   }
 }
 
+function expectedPlayersPerTeam(matchType: MatchType) {
+  return matchType === "1v1" ? 1 : 2;
+}
+
 export async function ensureUserProfile(params: {
   uid: string;
   displayName: string | null;
   photoURL: string | null;
 }): Promise<void> {
-  if (!isFirebaseConfigured() || !db) {
-    return;
-  }
+  if (!isFirebaseConfigured() || !db) return;
 
   const userRef = doc(db, USERS_COLLECTION, params.uid);
   const snapshot = await getDoc(userRef);
@@ -98,92 +99,80 @@ export function userFromSnapshot(
   return mapUser(id, data);
 }
 
-export async function recordDoublesMatch(params: {
+export async function recordMatch(params: {
   firestore?: Firestore;
-  teamAIds: [string, string];
-  teamBIds: [string, string];
+  matchType: MatchType;
+  teamAIds: string[];
+  teamBIds: string[];
   scoreA: number;
   scoreB: number;
 }): Promise<string> {
   if (!isFirebaseConfigured() || !db || !auth) {
     throw new Error("FIREBASE_UNAVAILABLE");
   }
+  if (!auth.currentUser) throw new Error("UNAUTHENTICATED");
 
-  const firestore = params.firestore ?? db;
-  const { teamAIds, teamBIds, scoreA, scoreB } = params;
-
-  if (!auth.currentUser) {
-    throw new Error("UNAUTHENTICATED");
+  const { matchType, teamAIds, teamBIds, scoreA, scoreB } = params;
+  const teamSize = expectedPlayersPerTeam(matchType);
+  if (teamAIds.length !== teamSize || teamBIds.length !== teamSize) {
+    throw new Error("INVALID_TEAM_SIZE");
   }
-
   assertScore(scoreA);
   assertScore(scoreB);
-  if (scoreA === scoreB) {
-    throw new Error("TIE");
-  }
 
   const playerIds = [...teamAIds, ...teamBIds];
-  if (new Set(playerIds).size !== 4) {
+  if (new Set(playerIds).size !== playerIds.length || playerIds.some((id) => !id)) {
     throw new Error("DUPLICATE_PLAYERS");
   }
 
+  const firestore = params.firestore ?? db;
   const userDocs = await Promise.all(
     playerIds.map((id) => getDoc(doc(firestore, USERS_COLLECTION, id))),
   );
-
   const users = userDocs.map((snapshot, index) => {
-    if (!snapshot.exists()) {
-      throw new Error(`MISSING_PLAYER:${playerIds[index]}`);
-    }
+    if (!snapshot.exists()) throw new Error(`MISSING_PLAYER:${playerIds[index]}`);
     return mapUser(snapshot.id, snapshot.data() as Record<string, unknown>);
   });
-
-  const teamAPlayers = [users[0], users[1]];
-  const teamBPlayers = [users[2], users[3]];
-
+  const teamAPlayers = users.slice(0, teamSize);
+  const teamBPlayers = users.slice(teamSize);
   const result = calculateMatchResult(
+    matchType,
     teamAPlayers,
     teamBPlayers,
     scoreA,
     scoreB,
   );
-  const winner = getMatchWinner(scoreA, scoreB);
 
-  const teamA: TeamMember[] = teamAPlayers.map((player, index) => ({
-    userId: player.id,
-    preRank: player.displayRank,
-    postRank: calculateDisplayRank(
-      result.teamA[index].mu,
-      result.teamA[index].sigma,
-    ),
-  }));
-
-  const teamB: TeamMember[] = teamBPlayers.map((player, index) => ({
-    userId: player.id,
-    preRank: player.displayRank,
-    postRank: calculateDisplayRank(
-      result.teamB[index].mu,
-      result.teamB[index].sigma,
-    ),
-  }));
+  const toMembers = (
+    players: User[],
+    ratings: { mu: number; sigma: number }[],
+  ): TeamMember[] =>
+    players.map((player, index) => ({
+      userId: player.id,
+      preRank: player.displayRank,
+      postRank: calculateDisplayRank(ratings[index].mu, ratings[index].sigma),
+    }));
+  const teamA = toMembers(teamAPlayers, result.teamA);
+  const teamB = toMembers(teamBPlayers, result.teamB);
 
   const batch = writeBatch(firestore);
   const matchRef = doc(collection(firestore, MATCHES_COLLECTION));
-
   batch.set(matchRef, {
     id: matchRef.id,
     createdAt: serverTimestamp(),
+    matchType,
     teamA,
     teamB,
     scoreA,
     scoreB,
-    winner,
+    winner: result.winner,
+    movMultiplier: result.movMultiplier,
   });
 
-  const applyTeam = (
+  const updateTeam = (
     players: User[],
     ratings: { mu: number; sigma: number }[],
-    won: boolean,
+    outcome: "won" | "lost" | "draw",
   ) => {
     players.forEach((player, index) => {
       const next = ratings[index];
@@ -192,14 +181,18 @@ export async function recordDoublesMatch(params: {
         sigma: next.sigma,
         displayRank: calculateDisplayRank(next.mu, next.sigma),
         matchesPlayed: player.matchesPlayed + 1,
-        wins: player.wins + (won ? 1 : 0),
-        losses: player.losses + (won ? 0 : 1),
+        wins: player.wins + (outcome === "won" ? 1 : 0),
+        losses: player.losses + (outcome === "lost" ? 1 : 0),
       });
     });
   };
 
-  applyTeam(teamAPlayers, result.teamA, winner === "teamA");
-  applyTeam(teamBPlayers, result.teamB, winner === "teamB");
+  const teamAOutcome =
+    result.winner === "teamA" ? "won" : result.winner === "teamB" ? "lost" : "draw";
+  const teamBOutcome =
+    result.winner === "teamB" ? "won" : result.winner === "teamA" ? "lost" : "draw";
+  updateTeam(teamAPlayers, result.teamA, teamAOutcome);
+  updateTeam(teamBPlayers, result.teamB, teamBOutcome);
 
   await batch.commit();
   return matchRef.id;
