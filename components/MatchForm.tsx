@@ -114,6 +114,8 @@ export function MatchForm() {
     }
   }
 
+  const scoreOutcome = scoreA === scoreB ? t("draw") : scoreA > scoreB ? t("winnerA") : t("winnerB");
+
   return (
     <section>
       <header className="px-1">
@@ -150,13 +152,41 @@ export function MatchForm() {
 
           <BadmintonCourt matchType={matchType} slots={slots} playerById={playerById} onPick={setPickerSlot} labels={{ teamA: t("teamA"), teamB: t("teamB"), select: t("selectPlayer") }} />
 
-          <div className="rounded-[1.75rem] border border-white/10 bg-slate-900/55 p-4 backdrop-blur-xl">
-            <div className="flex items-center justify-between">
-              <ScoreControl label={t("teamA")} value={scoreA} onChange={setScoreA} />
-              <div className="px-2 text-center"><p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-600">Final</p><p className="mt-2 text-lg font-black text-slate-600">—</p></div>
-              <ScoreControl label={t("teamB")} value={scoreB} onChange={setScoreB} />
+          <div className="overflow-hidden rounded-[1.75rem] border border-white/10 bg-slate-900/65 backdrop-blur-xl">
+            <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-3">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">{t("score")}</p>
+                <p className="mt-0.5 text-sm font-extrabold text-slate-100">Final score</p>
+              </div>
+              <motion.span key={scoreOutcome} initial={{ opacity: 0, scale: 0.92 }} animate={{ opacity: 1, scale: 1 }} className="rounded-full bg-emerald-300/10 px-3 py-1.5 text-[10px] font-black text-emerald-300 ring-1 ring-emerald-300/15">{scoreOutcome}</motion.span>
             </div>
-            <div className="mt-4 flex justify-center gap-2">{[11, 15, 21].map((score) => <motion.button whileTap={{ scale: 0.95 }} key={score} type="button" onClick={() => scoreA >= scoreB ? setScoreA(score) : setScoreB(score)} className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[10px] font-black text-slate-400">{t("bestOf", { score })}</motion.button>)}</div>
+
+            <div className="grid grid-cols-[1fr_auto_1fr] items-stretch gap-2 p-3">
+              <ScorePanel team="A" label={t("teamA")} value={scoreA} onChange={setScoreA} tone="emerald" />
+              <div className="flex w-7 flex-col items-center justify-center">
+                <span className="h-full w-px bg-gradient-to-b from-transparent via-white/10 to-transparent" />
+                <span className="my-2 text-[9px] font-black uppercase tracking-[0.16em] text-slate-600">vs</span>
+                <span className="h-full w-px bg-gradient-to-b from-transparent via-white/10 to-transparent" />
+              </div>
+              <ScorePanel team="B" label={t("teamB")} value={scoreB} onChange={setScoreB} tone="sky" />
+            </div>
+
+            <div className="border-t border-white/[0.06] px-3 py-3">
+              <div className="flex items-center gap-2 overflow-x-auto">
+                <span className="shrink-0 pl-1 text-[9px] font-black uppercase tracking-[0.16em] text-slate-600">Quick</span>
+                {([[21, 10], [10, 21]] as const).map(([teamA, teamB]) => (
+                  <motion.button
+                    whileTap={{ scale: 0.94 }}
+                    key={`${teamA}-${teamB}`}
+                    type="button"
+                    onClick={() => { setScoreA(teamA); setScoreB(teamB); }}
+                    className="min-h-9 flex-1 rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 text-xs font-black tabular-nums text-slate-300 transition-colors hover:bg-white/[0.08]"
+                  >
+                    {teamA}<span className="px-1 text-slate-600">–</span>{teamB}
+                  </motion.button>
+                ))}
+              </div>
+            </div>
           </div>
 
           {message && <p role="status" className={cn("rounded-xl px-3 py-2 text-center text-xs font-bold", message.type === "success" ? "bg-emerald-300/10 text-emerald-300" : "bg-rose-400/10 text-rose-300")}>{message.text}</p>}
@@ -206,8 +236,29 @@ function CourtSlot({ slot, player, onPick, label }: { slot: SlotKey; player?: Us
   return <motion.button whileTap={{ scale: 0.95 }} type="button" onClick={() => onPick(slot)} className={cn("mx-auto flex w-full max-w-32 flex-col items-center rounded-2xl border px-2 py-3 text-center shadow-lg backdrop-blur-md", player ? "border-white/35 bg-slate-950/65" : "border-dashed border-white/45 bg-slate-950/35")}><span className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-white/20 bg-white/10">{player ? <Avatar player={player} className="h-full w-full rounded-full" /> : <UserPlus className="h-5 w-5 text-white/80" />}</span><span className="mt-2 w-full truncate text-[11px] font-black text-white">{player?.displayName ?? label}</span></motion.button>;
 }
 
-function ScoreControl({ label, value, onChange }: { label: string; value: number; onChange: (value: number) => void }) {
-  return <div className="flex flex-1 flex-col items-center"><span className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">{label}</span><div className="mt-2 flex items-center gap-2"><motion.button whileTap={{ scale: 0.9 }} type="button" aria-label={`${label} -1`} onClick={() => onChange(Math.max(MIN_MATCH_SCORE, value - 1))} className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/[0.06] text-slate-300"><Minus className="h-4 w-4" /></motion.button><input inputMode="numeric" aria-label={label} value={value} onChange={(event) => onChange(Math.min(MAX_MATCH_SCORE, Math.max(MIN_MATCH_SCORE, Number.parseInt(event.target.value.replace(/\D/g, ""), 10) || 0)))} className="h-14 w-14 bg-transparent text-center text-4xl font-black tabular-nums text-white outline-none" /><motion.button whileTap={{ scale: 0.9 }} type="button" aria-label={`${label} +1`} onClick={() => onChange(Math.min(MAX_MATCH_SCORE, value + 1))} className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-300 text-slate-950"><Plus className="h-4 w-4" /></motion.button></div></div>;
+function ScorePanel({ team, label, value, onChange, tone }: { team: "A" | "B"; label: string; value: number; onChange: (value: number) => void; tone: "emerald" | "sky" }) {
+  const accent = tone === "emerald" ? "bg-emerald-300 text-slate-950" : "bg-sky-300 text-slate-950";
+  const border = tone === "emerald" ? "border-emerald-300/20 bg-emerald-300/[0.045]" : "border-sky-300/20 bg-sky-300/[0.045]";
+  return (
+    <div className={cn("overflow-hidden rounded-[1.3rem] border", border)}>
+      <div className="flex items-center gap-2 px-3 pt-3">
+        <span className={cn("flex h-6 w-6 items-center justify-center rounded-lg text-[10px] font-black", accent)}>{team}</span>
+        <span className="truncate text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">{label}</span>
+      </div>
+      <input
+        inputMode="numeric"
+        aria-label={`${label} score`}
+        value={value}
+        onFocus={(event) => event.currentTarget.select()}
+        onChange={(event) => onChange(Math.min(MAX_MATCH_SCORE, Math.max(MIN_MATCH_SCORE, Number.parseInt(event.target.value.replace(/\D/g, ""), 10) || 0)))}
+        className="my-2 h-[4.6rem] w-full bg-transparent text-center text-6xl font-black tabular-nums tracking-[-0.06em] text-white outline-none selection:bg-emerald-300/30"
+      />
+      <div className="grid grid-cols-2 border-t border-white/[0.07]">
+        <motion.button whileTap={{ scale: 0.9 }} type="button" aria-label={`${label} -1`} onClick={() => onChange(Math.max(MIN_MATCH_SCORE, value - 1))} className="flex min-h-11 items-center justify-center border-r border-white/[0.07] text-slate-400 transition-colors hover:bg-white/[0.05] hover:text-white"><Minus className="h-4 w-4" /></motion.button>
+        <motion.button whileTap={{ scale: 0.9 }} type="button" aria-label={`${label} +1`} onClick={() => onChange(Math.min(MAX_MATCH_SCORE, value + 1))} className={cn("flex min-h-11 items-center justify-center transition-opacity hover:opacity-90", accent)}><Plus className="h-4 w-4" /></motion.button>
+      </div>
+    </div>
+  );
 }
 
 function Avatar({ player, className }: { player: User; className?: string }) {
