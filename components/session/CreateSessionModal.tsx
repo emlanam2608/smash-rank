@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { collection, onSnapshot, query } from "firebase/firestore";
-import { QrCode, Users } from "lucide-react";
+import { Copy, QrCode, Share2, Users } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useLocale, useTranslations } from "next-intl";
 import { useAuth } from "@/components/AuthProvider";
@@ -30,6 +30,8 @@ export function CreateSessionModal() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [summaryOpen, setSummaryOpen] = useState(false);
+  const [qrOpen, setQrOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!sessionId) return;
@@ -82,6 +84,19 @@ export function CreateSessionModal() {
     }
   }
 
+  async function copyJoinLink() {
+    if (!joinUrl) return;
+    await navigator.clipboard.writeText(joinUrl);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1500);
+  }
+
+  async function shareJoinLink() {
+    if (!joinUrl) return;
+    if (navigator.share) await navigator.share({ title: session?.title ?? "SmashRank session", text: t("shareText"), url: joinUrl });
+    else await copyJoinLink();
+  }
+
   return (
     <>
       <Dialog open={open} onOpenChange={resetDialog}>
@@ -102,12 +117,12 @@ export function CreateSessionModal() {
             </form>
           ) : session ? (
             <div className="mt-4 space-y-4">
-              {joinUrl ? <div className="mx-auto w-fit rounded-2xl bg-white p-3"><QRCodeSVG value={joinUrl} size={192} level="M" includeMargin /></div> : null}
+              {joinUrl ? <button type="button" onClick={() => setQrOpen(true)} className="mx-auto block rounded-3xl bg-white p-3 shadow-float transition-transform hover:scale-[1.02] active:scale-95"><QRCodeSVG value={joinUrl} size={192} level="M" includeMargin /></button> : null}
               <p className="text-center text-xs text-slate-400">{t("scanHint")}</p>
               <p className="text-center text-sm font-semibold text-emerald-400">{t("codeDisplay", { code: session.code })}</p>
               <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-3">
                 <p className="mb-3 flex items-center gap-2 text-sm font-semibold"><Users className="h-4 w-4 text-emerald-400" />{t("checkedIn", { count: session.playerIds.length })}</p>
-                <div className="grid grid-cols-5 gap-2">
+                <div className="flex -space-x-2 overflow-hidden py-1">
                   {attendees.map((player) => <AttendeeAvatar key={player.id} name={player.displayName} photoURL={player.photoURL} />)}
                 </div>
               </div>
@@ -120,13 +135,22 @@ export function CreateSessionModal() {
         </DialogContent>
       </Dialog>
       {session ? <SessionSummaryModal session={session} open={summaryOpen} onOpenChange={setSummaryOpen} /> : null}
+      <Dialog open={qrOpen} onOpenChange={setQrOpen}>
+        <DialogContent className="items-center text-center">
+          <DialogTitle>{t("shareTitle")}</DialogTitle>
+          <DialogDescription>{t("shareDescription")}</DialogDescription>
+          {joinUrl ? <div className="mt-5 rounded-[2rem] bg-white p-5 shadow-float"><QRCodeSVG value={joinUrl} size={260} level="H" includeMargin /></div> : null}
+          <div className="mt-5 grid w-full grid-cols-2 gap-3"><Button type="button" variant="outline" onClick={() => copyJoinLink()}><Copy className="h-4 w-4" />{copied ? t("copied") : t("copyLink")}</Button><Button type="button" onClick={() => shareJoinLink()}><Share2 className="h-4 w-4" />{t("sharePreview")}</Button></div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
 
 function AttendeeAvatar({ name, photoURL }: { name: string; photoURL?: string }) {
-  return photoURL ? (
+  const avatar = photoURL ? (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={photoURL} alt={name} title={name} className="h-10 w-10 rounded-full object-cover" />
-  ) : <div title={name} className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-800 text-sm font-bold text-emerald-300">{name.slice(0, 1).toUpperCase()}</div>;
+    <img src={photoURL} alt={name} title={name} className="h-10 w-10 rounded-full object-cover ring-2 ring-slate-950" />
+  ) : <div title={name} className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-800 text-sm font-bold text-emerald-300 ring-2 ring-slate-950">{name.slice(0, 1).toUpperCase()}</div>;
+  return <div className="relative shrink-0">{avatar}<span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-slate-950 bg-emerald-400" /></div>;
 }

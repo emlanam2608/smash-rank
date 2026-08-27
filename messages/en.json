@@ -8,6 +8,9 @@
     "leaderboard": "Leaderboard",
     "recordMatch": "Record Match",
     "mySessions": "My sessions",
+    "play": "Play",
+    "activeSession": "Session",
+    "profile": "Profile",
     "aria": "Main navigation"
   },
   "mySessions": {
@@ -26,6 +29,9 @@
     "signInPrompt": "Sign in to see the sessions you host and join.",
     "signIn": "Sign in to view sessions"
   },
+  "sessionsTab": {
+    "eyebrow": "Court history", "title": "Sessions", "detail": "Session details", "players": "players", "active": "Active", "closed": "Closed", "empty": "Join or create a court session to see it here.", "signInPrompt": "Sign in to see your sessions.", "signIn": "Sign in", "back": "Back to sessions", "viewQr": "View QR", "copyLink": "Copy link", "totalMatches": "Total matches", "mvp": "Session MVP", "history": "Match history", "noMatches": "No matches yet.", "useSession": "Use for match recording", "share": "Share join link"
+  },
   "auth": {
     "signIn": "Sign in with Google",
     "signOut": "Sign out",
@@ -36,6 +42,7 @@
   },
   "leaderboard": {
     "title": "Leaderboard",
+    "eyebrow": "Live standings",
     "subtitle": "Live TrueSkill rankings",
     "rank": "Rank",
     "player": "Player",
@@ -50,7 +57,12 @@
     "you": "You",
     "top1": "Gold",
     "top2": "Silver",
-    "top3": "Bronze"
+    "top3": "Bronze",
+    "allPlayers": "Player rankings",
+    "novice": "Novice",
+    "advanced": "Advanced",
+    "master": "Master",
+    "streak": "streak"
   },
   "match": {
     "title": "Record Match",
@@ -77,6 +89,12 @@
     "draw": "Draw",
     "mov": "MoV ×{value}",
     "delta": "{value}",
+    "court": "Court net",
+    "scorePresets": "Score presets",
+    "bestOf": "to {score}",
+    "livePreview": "Projected rank change",
+    "blowout": "⚡ Blowout win ×{value}",
+    "tight": "🤝 Tight game ×{value}",
     "errors": {
       "incomplete": "Select every player and enter both scores.",
       "duplicate": "Each player can only appear once.",
@@ -102,9 +120,17 @@
     "creating": "Creating…",
     "hostDescription": "Share this QR code with players at the court.",
     "scanHint": "Players can scan this code to check in.",
+    "shareTitle": "Share court check-in",
+    "shareDescription": "Scan the code, copy the link, or share its live preview.",
+    "copyLink": "Copy link",
+    "copied": "Copied!",
+    "sharePreview": "Share preview",
+    "shareText": "Join my SmashRank court session.",
     "checkedIn": "{count} checked in",
     "checkedInTo": "Checked in to {title}!",
     "activeIndicator": "Active session: {title}",
+    "activeNow": "Active court",
+    "clearActive": "Clear active session",
     "close": "Close session",
     "closing": "Closing…",
     "confirmClose": "Close session now",
@@ -138,6 +164,20 @@
       "code": "Enter a valid 4-digit PIN.",
       "join": "Could not check you in. Try again."
     }
+  },
+  "profile": {
+    "title": "Your profile",
+    "signInPrompt": "Sign in to track your badminton journey.",
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "ready": "Ready to play",
+    "readyDescription": "Create or join a court session.",
+    "matches": "Matches played",
+    "winRate": "Win rate",
+    "wins": "Total wins",
+    "losses": "Total losses",
+    "live": "Live ranking",
+    "liveDescription": "Your results update instantly."
   },
   "language": {
     "label": "Language",

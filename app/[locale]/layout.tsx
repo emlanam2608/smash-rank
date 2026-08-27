@@ -15,6 +15,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
   title: "SmashRank",
   description:
     "Badminton skill rating and match tracking powered by TrueSkill.",
@@ -27,6 +28,18 @@ export const metadata: Metadata = {
   },
   formatDetection: {
     telephone: false,
+  },
+  openGraph: {
+    title: "SmashRank",
+    description: "Own the court. Climb the ranks.",
+    type: "website",
+    images: [{ url: "/og.png", width: 1792, height: 922, alt: "SmashRank badminton rankings" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SmashRank",
+    description: "Own the court. Climb the ranks.",
+    images: ["/og.png"],
   },
 };
 

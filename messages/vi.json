@@ -8,6 +8,9 @@
     "leaderboard": "Bảng xếp hạng",
     "recordMatch": "Ghi trận",
     "mySessions": "Buổi chơi của tôi",
+    "play": "Chơi",
+    "activeSession": "Buổi chơi",
+    "profile": "Hồ sơ",
     "aria": "Điều hướng chính"
   },
   "mySessions": {
@@ -26,6 +29,9 @@
     "signInPrompt": "Đăng nhập để xem các buổi bạn tổ chức và tham gia.",
     "signIn": "Đăng nhập để xem buổi chơi"
   },
+  "sessionsTab": {
+    "eyebrow": "Lịch sử sân", "title": "Buổi chơi", "detail": "Chi tiết buổi chơi", "players": "người chơi", "active": "Đang hoạt động", "closed": "Đã đóng", "empty": "Tham gia hoặc tạo buổi chơi để xem tại đây.", "signInPrompt": "Đăng nhập để xem buổi chơi.", "signIn": "Đăng nhập", "back": "Quay lại", "viewQr": "Xem mã QR", "copyLink": "Sao chép liên kết", "totalMatches": "Tổng số trận", "mvp": "MVP buổi chơi", "history": "Lịch sử trận", "noMatches": "Chưa có trận nào.", "useSession": "Dùng để ghi trận", "share": "Chia sẻ liên kết"
+  },
   "auth": {
     "signIn": "Đăng nhập với Google",
     "signOut": "Đăng xuất",
@@ -36,6 +42,7 @@
   },
   "leaderboard": {
     "title": "Bảng xếp hạng",
+    "eyebrow": "Xếp hạng trực tiếp",
     "subtitle": "Xếp hạng TrueSkill trực tiếp",
     "rank": "Hạng",
     "player": "Vận động viên",
@@ -50,7 +57,12 @@
     "you": "Bạn",
     "top1": "Vàng",
     "top2": "Bạc",
-    "top3": "Đồng"
+    "top3": "Đồng",
+    "allPlayers": "Xếp hạng người chơi",
+    "novice": "Mới chơi",
+    "advanced": "Nâng cao",
+    "master": "Cao thủ",
+    "streak": "thắng liên tiếp"
   },
   "match": {
     "title": "Ghi trận",
@@ -77,6 +89,12 @@
     "draw": "Hòa",
     "mov": "Biên độ ×{value}",
     "delta": "{value}",
+    "court": "Lưới sân",
+    "scorePresets": "Điểm nhanh",
+    "bestOf": "đến {score}",
+    "livePreview": "Dự kiến thay đổi hạng",
+    "blowout": "⚡ Thắng áp đảo ×{value}",
+    "tight": "🤝 Trận sát nút ×{value}",
     "errors": {
       "incomplete": "Chọn đủ người chơi và nhập cả hai tỷ số.",
       "duplicate": "Mỗi người chỉ được xuất hiện một lần.",
@@ -102,9 +120,17 @@
     "creating": "Đang tạo…",
     "hostDescription": "Chia sẻ mã QR này với người chơi tại sân.",
     "scanHint": "Người chơi có thể quét mã này để check-in.",
+    "shareTitle": "Chia sẻ check-in sân",
+    "shareDescription": "Quét mã, sao chép liên kết hoặc chia sẻ bản xem trước.",
+    "copyLink": "Sao chép liên kết",
+    "copied": "Đã sao chép!",
+    "sharePreview": "Chia sẻ xem trước",
+    "shareText": "Tham gia buổi chơi sân SmashRank của tôi.",
     "checkedIn": "Đã check-in: {count}",
     "checkedInTo": "Đã check-in vào {title}!",
     "activeIndicator": "Buổi chơi đang hoạt động: {title}",
+    "activeNow": "Sân đang hoạt động",
+    "clearActive": "Bỏ chọn buổi chơi",
     "close": "Đóng buổi chơi",
     "closing": "Đang đóng…",
     "confirmClose": "Đóng buổi chơi ngay",
@@ -138,6 +164,20 @@
       "code": "Nhập mã PIN 4 chữ số hợp lệ.",
       "join": "Không thể check-in. Thử lại."
     }
+  },
+  "profile": {
+    "title": "Hồ sơ của bạn",
+    "signInPrompt": "Đăng nhập để theo dõi hành trình cầu lông.",
+    "signIn": "Đăng nhập",
+    "signOut": "Đăng xuất",
+    "ready": "Sẵn sàng chơi",
+    "readyDescription": "Tạo hoặc tham gia buổi chơi sân.",
+    "matches": "Số trận đã chơi",
+    "winRate": "Tỷ lệ thắng",
+    "wins": "Tổng trận thắng",
+    "losses": "Tổng trận thua",
+    "live": "Xếp hạng trực tiếp",
+    "liveDescription": "Kết quả của bạn cập nhật ngay."
   },
   "language": {
     "label": "Ngôn ngữ",
