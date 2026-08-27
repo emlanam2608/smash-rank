@@ -1,10 +1,11 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { ClipboardList, Trophy } from 'lucide-react';
+import { ClipboardList, Trophy, UsersRound } from 'lucide-react';
 import { AppHeader } from '@/components/AppHeader';
 import { Leaderboard } from '@/components/Leaderboard';
 import { MatchForm } from '@/components/MatchForm';
+import { MySessions } from '@/components/MySessions';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export function HomeTabs() {
@@ -15,7 +16,7 @@ export function HomeTabs() {
       <AppHeader />
       <main className="mx-auto max-w-lg px-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-4">
         <Tabs defaultValue="leaderboard">
-          <TabsList aria-label={tNav('aria')}>
+          <TabsList aria-label={tNav('aria')} className="grid-cols-3">
             <TabsTrigger value="leaderboard">
               <Trophy className="h-4 w-4" />
               {tNav('leaderboard')}
@@ -24,12 +25,19 @@ export function HomeTabs() {
               <ClipboardList className="h-4 w-4" />
               {tNav('recordMatch')}
             </TabsTrigger>
+            <TabsTrigger value="sessions">
+              <UsersRound className="h-4 w-4" />
+              {tNav('mySessions')}
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="leaderboard">
             <Leaderboard />
           </TabsContent>
           <TabsContent value="match">
             <MatchForm />
+          </TabsContent>
+          <TabsContent value="sessions">
+            <MySessions />
           </TabsContent>
         </Tabs>
       </main>

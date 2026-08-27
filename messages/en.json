@@ -7,7 +7,24 @@
   "nav": {
     "leaderboard": "Leaderboard",
     "recordMatch": "Record Match",
+    "mySessions": "My sessions",
     "aria": "Main navigation"
+  },
+  "mySessions": {
+    "title": "My sessions",
+    "subtitle": "Sessions you host and sessions you have joined.",
+    "hostedTitle": "Hosted by you",
+    "joinedTitle": "Joined by you",
+    "active": "Active",
+    "closed": "Closed",
+    "players": "{count} players",
+    "select": "Use for matches",
+    "selected": "Active for matches",
+    "open": "Open",
+    "empty": "You have not hosted or joined a session yet.",
+    "loading": "Loading your sessions…",
+    "signInPrompt": "Sign in to see the sessions you host and join.",
+    "signIn": "Sign in to view sessions"
   },
   "auth": {
     "signIn": "Sign in with Google",

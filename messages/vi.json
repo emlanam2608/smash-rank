@@ -7,7 +7,24 @@
   "nav": {
     "leaderboard": "Bảng xếp hạng",
     "recordMatch": "Ghi trận",
+    "mySessions": "Buổi chơi của tôi",
     "aria": "Điều hướng chính"
+  },
+  "mySessions": {
+    "title": "Buổi chơi của tôi",
+    "subtitle": "Các buổi bạn tổ chức và đã tham gia.",
+    "hostedTitle": "Bạn tổ chức",
+    "joinedTitle": "Bạn đã tham gia",
+    "active": "Đang hoạt động",
+    "closed": "Đã đóng",
+    "players": "{count} người chơi",
+    "select": "Dùng để ghi trận",
+    "selected": "Đang dùng để ghi trận",
+    "open": "Mở",
+    "empty": "Bạn chưa tổ chức hoặc tham gia buổi chơi nào.",
+    "loading": "Đang tải buổi chơi…",
+    "signInPrompt": "Đăng nhập để xem các buổi bạn tổ chức và tham gia.",
+    "signIn": "Đăng nhập để xem buổi chơi"
   },
   "auth": {
     "signIn": "Đăng nhập với Google",
