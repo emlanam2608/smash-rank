@@ -30,7 +30,7 @@
     "signIn": "Sign in to view sessions"
   },
   "sessionsTab": {
-    "eyebrow": "Court history", "title": "Sessions", "detail": "Session details", "players": "players", "active": "Active", "closed": "Closed", "empty": "Join or create a court session to see it here.", "signInPrompt": "Sign in to see your sessions.", "signIn": "Sign in", "back": "Back to sessions", "viewQr": "View QR", "copyLink": "Copy link", "totalMatches": "Total matches", "mvp": "Session MVP", "history": "Match history", "noMatches": "No matches yet.", "useSession": "Use for match recording", "share": "Share join link"
+    "eyebrow": "Court history", "title": "Sessions", "detail": "Session details", "players": "players", "playerRoster": "Player roster", "viewPlayers": "View all", "points": "points", "active": "Active", "closed": "Closed", "empty": "Join or create a court session to see it here.", "signInPrompt": "Sign in to see your sessions.", "signIn": "Sign in", "back": "Back to sessions", "viewQr": "View QR", "copyLink": "Copy link", "totalMatches": "Total matches", "mvp": "Session MVP", "history": "Match history", "noMatches": "No matches yet.", "useSession": "Use for match recording", "share": "Share join link"
   },
   "auth": {
     "signIn": "Sign in with Google",

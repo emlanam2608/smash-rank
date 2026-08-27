@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @next/next/no-img-element */
 
 import { useEffect, useMemo, useState } from "react";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
@@ -12,8 +13,8 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import { useSession } from "@/context/SessionContext";
 import { db } from "@/lib/firebase";
 import { SESSIONS_COLLECTION, sessionFromSnapshot } from "@/lib/firebase/sessions";
-import { MATCHES_COLLECTION } from "@/lib/matches";
-import type { Match, Session } from "@/lib/types";
+import { MATCHES_COLLECTION, USERS_COLLECTION, userFromSnapshot } from "@/lib/matches";
+import type { Match, Session, User } from "@/lib/types";
 
 export function SessionsTab() {
   const t = useTranslations("sessionsTab");
@@ -23,13 +24,22 @@ export function SessionsTab() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);
+  const [players, setPlayers] = useState<User[]>([]);
   const [qrOpen, setQrOpen] = useState(false);
+  const [rosterOpen, setRosterOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!db || !user) return;
     return onSnapshot(query(collection(db, SESSIONS_COLLECTION), where("playerIds", "array-contains", user.uid)), (snapshot) => {
       setSessions(snapshot.docs.map((item) => sessionFromSnapshot(item.id, item.data() as Record<string, unknown>)).sort((a, b) => timestamp(b.createdAt) - timestamp(a.createdAt)));
+    });
+  }, [user]);
+
+  useEffect(() => {
+    if (!db || !user) return;
+    return onSnapshot(query(collection(db, USERS_COLLECTION)), (snapshot) => {
+      setPlayers(snapshot.docs.map((item) => userFromSnapshot(item.id, item.data() as Record<string, unknown>)));
     });
   }, [user]);
 
@@ -46,6 +56,8 @@ export function SessionsTab() {
   }, [selected]);
 
   const mvp = useMemo(() => sessionMvp(matches), [matches]);
+  const playerById = useMemo(() => new Map(players.map((player) => [player.id, player])), [players]);
+  const sessionPlayers = useMemo(() => selected?.playerIds.map((id) => ({ id, player: playerById.get(id) })) ?? [], [playerById, selected]);
   const joinUrl = selected ? `${typeof window === "undefined" ? "" : window.location.origin}/${locale}/session/${selected.id}/join` : "";
 
   async function copyJoinLink() {
@@ -86,6 +98,15 @@ export function SessionsTab() {
             <motion.button whileTap={{ scale: 0.95 }} type="button" onClick={copyJoinLink} className="flex min-h-24 flex-col items-start justify-between rounded-[1.4rem] border border-white/10 bg-slate-900/60 p-4 text-left backdrop-blur-xl">{copied ? <Check className="h-6 w-6 text-emerald-300" /> : <Copy className="h-6 w-6 text-emerald-300" />}<span className="text-sm font-black">{copied ? "Copied" : t("copyLink")}</span></motion.button>
           </div>
 
+          <motion.button whileTap={{ scale: 0.98 }} type="button" onClick={() => setRosterOpen(true)} className="group mt-3 flex w-full items-center gap-4 rounded-[1.4rem] border border-white/10 bg-slate-900/60 p-4 text-left backdrop-blur-xl transition-colors hover:bg-slate-900">
+            <div className="flex min-w-[4.5rem] -space-x-3">
+              {sessionPlayers.slice(0, 3).map(({ id, player }, index) => <PlayerAvatar key={id} player={player} fallback={id} className="h-10 w-10 rounded-full border-2 border-slate-900" style={{ zIndex: 3 - index }} />)}
+              {!sessionPlayers.length && <span className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-slate-900 bg-emerald-300/10 text-emerald-300"><Users className="h-4 w-4" /></span>}
+            </div>
+            <span className="min-w-0 flex-1"><span className="block text-[10px] font-black uppercase tracking-[0.16em] text-emerald-300">{t("playerRoster")}</span><span className="mt-1 block text-sm font-black">{selected.playerIds.length} {t("players")}</span></span>
+            <span className="flex items-center gap-1 text-[10px] font-black text-slate-500 transition-colors group-hover:text-slate-300">{t("viewPlayers")}<ChevronRight className="h-4 w-4" /></span>
+          </motion.button>
+
           <div className="mt-3 grid grid-cols-2 gap-3">
             <StatCard icon={<CalendarDays className="h-5 w-5" />} value={String(matches.length)} label={t("totalMatches")} />
             <StatCard icon={<Trophy className="h-5 w-5" />} value={mvp ?? "—"} label={t("mvp")} gold />
@@ -108,6 +129,23 @@ export function SessionsTab() {
               <Button className="mt-5 w-full" onClick={() => navigator.share?.({ title: selected.title, url: joinUrl })}><Share2 className="h-4 w-4" />{t("share")}</Button>
             </DialogContent>
           </Dialog>
+
+          <Dialog open={rosterOpen} onOpenChange={setRosterOpen}>
+            <DialogContent>
+              <DialogTitle className="text-xl font-black">{t("playerRoster")}</DialogTitle>
+              <DialogDescription className="text-sm text-slate-400">{selected.title} · {selected.playerIds.length} {t("players")}</DialogDescription>
+              <div className="mt-4 max-h-[55vh] space-y-2 overflow-y-auto pr-1">
+                {sessionPlayers.map(({ id, player }, index) => (
+                  <motion.div key={id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.035 }} className="flex items-center gap-3 rounded-[1.15rem] border border-white/[0.07] bg-white/[0.035] p-3">
+                    <span className="w-5 text-center text-xs font-black text-slate-600">{index + 1}</span>
+                    <PlayerAvatar player={player} fallback={id} className="h-11 w-11 rounded-xl" />
+                    <div className="min-w-0 flex-1"><p className="truncate text-sm font-black text-slate-100">{player?.displayName ?? id}</p><p className="mt-0.5 text-[10px] font-bold text-slate-500">{player?.matchesPlayed ?? 0} matches</p></div>
+                    <div className="text-right"><p className="text-sm font-black tabular-nums text-emerald-300">{player?.displayRank ?? "—"}</p><p className="text-[9px] font-black uppercase tracking-wider text-slate-600">{t("points")}</p></div>
+                  </motion.div>
+                ))}
+              </div>
+            </DialogContent>
+          </Dialog>
         </motion.section>
       )}
     </AnimatePresence>
@@ -127,6 +165,12 @@ function MatchRow({ match, index, locale }: { match: Match; index: number; local
   const b = match.teamB.map((member) => member.displayName ?? member.userId).join(" / ");
   const aWon = match.winner === "teamA";
   return <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(index * 0.04, 0.25) }} className="rounded-[1.25rem] border border-white/[0.07] bg-white/[0.035] p-3.5"><div className="flex items-center justify-between gap-3"><div className="min-w-0 flex-1"><p className={aWon ? "truncate text-xs font-black text-slate-100" : "truncate text-xs font-bold text-slate-500"}>{a}</p><p className={!aWon ? "mt-1.5 truncate text-xs font-black text-slate-100" : "mt-1.5 truncate text-xs font-bold text-slate-500"}>{b}</p></div><div className="flex items-center gap-3"><div className="text-right text-base font-black tabular-nums"><p className={aWon ? "text-emerald-300" : "text-slate-500"}>{match.scoreA}</p><p className={!aWon ? "text-emerald-300" : "text-slate-500"}>{match.scoreB}</p></div></div></div><p className="mt-2 text-[9px] font-bold uppercase tracking-wider text-slate-600">{formatDate(match.createdAt, locale)}</p></motion.div>;
+}
+
+function PlayerAvatar({ player, fallback, className, style }: { player?: User; fallback: string; className: string; style?: React.CSSProperties }) {
+  if (player?.photoURL) return <img src={player.photoURL} alt="" className={`${className} shrink-0 object-cover`} style={style} />;
+  const initial = player?.displayName?.slice(0, 1).toUpperCase() ?? fallback.slice(0, 1).toUpperCase();
+  return <span className={`${className} flex shrink-0 items-center justify-center bg-gradient-to-br from-emerald-200 to-emerald-600 text-xs font-black text-slate-950`} style={style}>{initial}</span>;
 }
 
 function timestamp(value: unknown) { return value && typeof value === "object" && "toMillis" in value && typeof value.toMillis === "function" ? value.toMillis() : 0; }
