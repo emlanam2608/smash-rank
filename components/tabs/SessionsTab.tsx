@@ -100,8 +100,8 @@ export function SessionsTab() {
     try {
       await correctSessionMatch({ matchId: editingMatch.id, scoreA, scoreB });
       setEditingMatch(null);
-    } catch {
-      setMatchError(t("matchUpdateError"));
+    } catch (error) {
+      setMatchError(error instanceof Error && error.message === "INVALID_SCORE_RANGE" ? t("invalidScore") : t("matchUpdateError"));
     } finally {
       setSavingMatch(false);
     }

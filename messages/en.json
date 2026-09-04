@@ -30,7 +30,7 @@
     "signIn": "Sign in to view sessions"
   },
   "sessionsTab": {
-    "eyebrow": "Court history", "title": "Sessions", "detail": "Session details", "loading": "Loading sessions…", "players": "players", "playerRoster": "Player roster", "viewPlayers": "View all", "points": "points", "active": "Active", "closed": "Closed", "empty": "Join or create a court session to see it here.", "signInPrompt": "Sign in to see your sessions.", "signIn": "Sign in", "back": "Back to sessions", "viewQr": "View QR", "copyLink": "Copy link", "totalMatches": "Total matches", "mvp": "Session MVP", "history": "Match history", "noMatches": "No matches yet.", "useSession": "Use for match recording", "share": "Share join link", "editMatch": "Adjust score", "deleteMatch": "Delete match", "editMatchDescription": "Updating the score recalculates player rankings from match history.", "deleteMatchDescription": "This removes the match and recalculates player rankings from match history.", "teamAScore": "Team A score", "teamBScore": "Team B score", "saveMatch": "Save score", "updatingMatch": "Updating…", "confirmDeleteMatch": "Delete match", "matchUpdateError": "Could not update this match. Try again.", "matchDetails": "Match details", "teamA": "Team A", "teamB": "Team B", "ratingGain": "points gained"
+    "eyebrow": "Court history", "title": "Sessions", "detail": "Session details", "loading": "Loading sessions…", "players": "players", "playerRoster": "Player roster", "viewPlayers": "View all", "points": "points", "active": "Active", "closed": "Closed", "empty": "Join or create a court session to see it here.", "signInPrompt": "Sign in to see your sessions.", "signIn": "Sign in", "back": "Back to sessions", "viewQr": "View QR", "copyLink": "Copy link", "totalMatches": "Total matches", "mvp": "Session MVP", "history": "Match history", "noMatches": "No matches yet.", "useSession": "Use for match recording", "share": "Share join link", "editMatch": "Adjust score", "deleteMatch": "Delete match", "editMatchDescription": "Updating the score recalculates player rankings from match history.", "deleteMatchDescription": "This removes the match and recalculates player rankings from match history.", "teamAScore": "Team A score", "teamBScore": "Team B score", "saveMatch": "Save score", "updatingMatch": "Updating…", "confirmDeleteMatch": "Delete match", "matchUpdateError": "Could not update this match. Try again.", "invalidScore": "Use a valid badminton final score: win by 2 after 20–20, or 30–29.", "matchDetails": "Match details", "teamA": "Team A", "teamB": "Team B", "ratingGain": "points gained"
   },
   "auth": {
     "signIn": "Sign in with Google",
@@ -100,7 +100,7 @@
     "errors": {
       "incomplete": "Select every player and enter both scores.",
       "duplicate": "Each player can only appear once.",
-      "range": "Scores must be between 0 and 30.",
+      "range": "Use a valid badminton final score: win by 2 after 20–20, or 30–29.",
       "save": "Could not save the match. Try again."
     }
   },

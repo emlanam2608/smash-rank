@@ -13,6 +13,17 @@ export const DEFAULT_SIGMA = 8.333;
 export const MIN_MATCH_SCORE = 0;
 export const MAX_MATCH_SCORE = 30;
 
+/** Returns whether a final badminton score follows deuce and golden-point rules. */
+export function isValidBadmintonScore(scoreA: number, scoreB: number): boolean {
+  if (!Number.isInteger(scoreA) || !Number.isInteger(scoreB) || scoreA < MIN_MATCH_SCORE || scoreB < MIN_MATCH_SCORE || scoreA > MAX_MATCH_SCORE || scoreB > MAX_MATCH_SCORE) return false;
+  const winner = Math.max(scoreA, scoreB);
+  const loser = Math.min(scoreA, scoreB);
+  if (winner === loser) return false;
+  if (loser <= 19) return winner === 21;
+  if (loser <= 28) return winner === loser + 2;
+  return loser === 29 && winner === 30;
+}
+
 export function createRating(
   mu: number = DEFAULT_MU,
   sigma: number = DEFAULT_SIGMA,

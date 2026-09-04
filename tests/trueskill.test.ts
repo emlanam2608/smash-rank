@@ -6,6 +6,7 @@ import {
   calculateMatchResult,
   calculateMovMultiplier,
   getMatchWinner,
+  isValidBadmintonScore,
 } from "@/lib/trueskill";
 
 const newPlayer = () => ({ mu: DEFAULT_MU, sigma: DEFAULT_SIGMA });
@@ -49,6 +50,16 @@ describe("TrueSkill ranking", () => {
   it("scales rating movement by the score margin", () => {
     expect(calculateMovMultiplier(21, 20)).toBeCloseTo(0.7738, 3);
     expect(calculateMovMultiplier(21, 0)).toBe(1.25);
+  });
+
+  it("enforces deuce and golden-point badminton scores", () => {
+    expect(isValidBadmintonScore(21, 19)).toBe(true);
+    expect(isValidBadmintonScore(21, 20)).toBe(false);
+    expect(isValidBadmintonScore(22, 20)).toBe(true);
+    expect(isValidBadmintonScore(29, 28)).toBe(false);
+    expect(isValidBadmintonScore(30, 28)).toBe(true);
+    expect(isValidBadmintonScore(30, 29)).toBe(true);
+    expect(isValidBadmintonScore(30, 30)).toBe(false);
   });
 
   it("rejects teams with the wrong number of players", () => {

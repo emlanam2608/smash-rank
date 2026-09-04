@@ -5,6 +5,15 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function validBadmintonScore(scoreA, scoreB) {
+      return (scoreA == 21 && scoreB >= 0 && scoreB <= 19)
+        || (scoreB == 21 && scoreA >= 0 && scoreA <= 19)
+        || (scoreA >= 22 && scoreA <= 30 && scoreB >= 20 && scoreB <= 28 && scoreA == scoreB + 2)
+        || (scoreB >= 22 && scoreB <= 30 && scoreA >= 20 && scoreA <= 28 && scoreB == scoreA + 2)
+        || (scoreA == 30 && scoreB == 29)
+        || (scoreB == 30 && scoreA == 29);
+    }
+
     match /users/{userId} {
       allow read: if signedIn();
       allow create: if signedIn() && request.auth.uid == userId;
@@ -29,12 +38,14 @@ service cloud.firestore {
         && request.resource.data.scoreA <= 30
         && request.resource.data.scoreB >= 0
         && request.resource.data.scoreB <= 30
+        && validBadmintonScore(request.resource.data.scoreA, request.resource.data.scoreB)
         && request.resource.data.winner in ['teamA', 'teamB', 'draw']
         && request.resource.data.movMultiplier is number;
       allow update: if signedIn()
         && resource.data.sessionId is string
         && get(/databases/$(database)/documents/sessions/$(resource.data.sessionId)).data.hostId == request.auth.uid
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['scoreA', 'scoreB', 'winner', 'movMultiplier']);
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['scoreA', 'scoreB', 'winner', 'movMultiplier'])
+        && validBadmintonScore(request.resource.data.scoreA, request.resource.data.scoreB);
       allow delete: if signedIn()
         && resource.data.sessionId is string
         && get(/databases/$(database)/documents/sessions/$(resource.data.sessionId)).data.hostId == request.auth.uid;

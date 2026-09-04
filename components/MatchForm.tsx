@@ -16,7 +16,7 @@ import { useSession } from "@/context/SessionContext";
 import { db, isFirebaseConfigured } from "@/lib/firebase";
 import { recordMatch, USERS_COLLECTION, userFromSnapshot } from "@/lib/matches";
 import { sessionFromSnapshot, SESSIONS_COLLECTION } from "@/lib/sessions";
-import { MAX_MATCH_SCORE, MIN_MATCH_SCORE } from "@/lib/trueskill";
+import { MAX_MATCH_SCORE, MIN_MATCH_SCORE, isValidBadmintonScore } from "@/lib/trueskill";
 import type { MatchType, Session, User } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -102,7 +102,7 @@ export function MatchForm() {
     const ids = activeSlots.map((slot) => slots[slot]);
     if (ids.some((id) => !id)) return setMessage({ type: "error", text: t("errors.incomplete") });
     if (new Set(ids).size !== ids.length) return setMessage({ type: "error", text: t("errors.duplicate") });
-    if ([scoreA, scoreB].some((score) => score < MIN_MATCH_SCORE || score > MAX_MATCH_SCORE)) return setMessage({ type: "error", text: t("errors.range") });
+    if (!isValidBadmintonScore(scoreA, scoreB)) return setMessage({ type: "error", text: t("errors.range") });
 
     setSubmitting(true);
     try {

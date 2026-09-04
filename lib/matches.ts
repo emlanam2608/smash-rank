@@ -13,26 +13,19 @@ import { auth, db, isFirebaseConfigured } from "./firebase";
 import {
   DEFAULT_MU,
   DEFAULT_SIGMA,
-  MAX_MATCH_SCORE,
-  MIN_MATCH_SCORE,
   calculateDisplayRank,
   calculateMatchResult,
   calculateMovMultiplier,
   getMatchWinner,
+  isValidBadmintonScore,
 } from "./trueskill";
 import type { Match, MatchType, TeamMember, User } from "./types";
 
 export const USERS_COLLECTION = "users";
 export const MATCHES_COLLECTION = "matches";
 
-function assertScore(score: number) {
-  if (
-    !Number.isInteger(score) ||
-    score < MIN_MATCH_SCORE ||
-    score > MAX_MATCH_SCORE
-  ) {
-    throw new Error("INVALID_SCORE_RANGE");
-  }
+function assertMatchScore(scoreA: number, scoreB: number) {
+  if (!isValidBadmintonScore(scoreA, scoreB)) throw new Error("INVALID_SCORE_RANGE");
 }
 
 function expectedPlayersPerTeam(matchType: MatchType) {
@@ -121,8 +114,7 @@ export async function recordMatch(params: {
   if (teamAIds.length !== teamSize || teamBIds.length !== teamSize) {
     throw new Error("INVALID_TEAM_SIZE");
   }
-  assertScore(scoreA);
-  assertScore(scoreB);
+  assertMatchScore(scoreA, scoreB);
 
   const playerIds = [...teamAIds, ...teamBIds];
   if (new Set(playerIds).size !== playerIds.length || playerIds.some((id) => !id)) {
@@ -223,8 +215,7 @@ export async function correctSessionMatch(correction: MatchCorrection): Promise<
   if (!sessionSnapshot.exists() || sessionSnapshot.data().hostId !== auth.currentUser.uid) throw new Error("FORBIDDEN");
   if (!correction.delete && (correction.scoreA === undefined || correction.scoreB === undefined)) throw new Error("INVALID_SCORE_RANGE");
   if (!correction.delete) {
-    assertScore(correction.scoreA!);
-    assertScore(correction.scoreB!);
+    assertMatchScore(correction.scoreA!, correction.scoreB!);
   }
 
   const [matchesSnapshot, usersSnapshot] = await Promise.all([
