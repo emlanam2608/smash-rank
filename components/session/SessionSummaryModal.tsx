@@ -2,9 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
-import { Trophy } from "lucide-react";
+import { LoaderCircle, Trophy } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
+import { LoadingIndicator } from "@/components/ui/loading-indicator";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { useSession } from "@/context/SessionContext";
 import { db } from "@/lib/firebase";
@@ -24,18 +25,22 @@ export function SessionSummaryModal({
   const t = useTranslations("session");
   const { setActiveSessionId } = useSession();
   const [matches, setMatches] = useState<Match[]>([]);
+  const [loadingMatches, setLoadingMatches] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!db || !open) return;
+    setLoadingMatches(true);
     return onSnapshot(
       query(collection(db, MATCHES_COLLECTION), where("sessionId", "==", session.id)),
       (snapshot) => {
         setMatches(
           snapshot.docs.map((item) => ({ id: item.id, ...item.data() }) as Match),
         );
+        setLoadingMatches(false);
       },
+      () => setLoadingMatches(false),
     );
   }, [open, session.id]);
 
@@ -82,6 +87,7 @@ export function SessionSummaryModal({
         <DialogTitle>{t("summaryTitle")}</DialogTitle>
         <DialogDescription>{session.title}</DialogDescription>
         <div className="mt-4 space-y-4">
+          {loadingMatches ? <LoadingIndicator label={t("loading")} /> : null}
           <p className="rounded-xl bg-slate-900 px-3 py-2 text-center text-sm font-semibold">{t("totalMatches", { count: matches.length })}</p>
           <div>
             <p className="mb-2 flex items-center gap-2 font-semibold"><Trophy className="h-4 w-4 text-gold" />{t("mvp")}</p>
@@ -91,7 +97,7 @@ export function SessionSummaryModal({
             <p className="mb-2 font-semibold">{t("sessionRecords")}</p>
             <ul className="space-y-1">{standings.map(([id, stats]) => <li key={id} className="flex justify-between text-sm text-slate-300"><span>{nameFor(id, stats.displayName)}</span><span>{stats.wins}–{stats.losses}</span></li>)}</ul>
           </div>
-          {session.status === "active" ? <Button className="w-full" variant="destructive" onClick={handleClose} disabled={busy}>{busy ? t("closing") : t("confirmClose")}</Button> : null}
+          {session.status === "active" ? <Button className="w-full" variant="destructive" onClick={handleClose} disabled={busy}>{busy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}{busy ? t("closing") : t("confirmClose")}</Button> : null}
           {error ? <p className="text-center text-sm text-rose-400">{error}</p> : null}
         </div>
       </DialogContent>

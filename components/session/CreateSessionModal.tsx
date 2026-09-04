@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { collection, onSnapshot, query } from "firebase/firestore";
-import { Copy, QrCode, Share2, Users } from "lucide-react";
+import { Copy, Image as ImageIcon, LoaderCircle, QrCode, Share2, Users } from "lucide-react";
+import QRCode from "qrcode";
 import { QRCodeSVG } from "qrcode.react";
 import { useLocale, useTranslations } from "next-intl";
 import { useAuth } from "@/components/AuthProvider";
@@ -32,6 +33,8 @@ export function CreateSessionModal() {
   const [summaryOpen, setSummaryOpen] = useState(false);
   const [qrOpen, setQrOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [imageCopied, setImageCopied] = useState(false);
+  const [imageCopying, setImageCopying] = useState(false);
 
   useEffect(() => {
     if (!sessionId) return;
@@ -97,6 +100,21 @@ export function CreateSessionModal() {
     else await copyJoinLink();
   }
 
+  async function copyQrImage() {
+    if (!joinUrl || !navigator.clipboard?.write || typeof ClipboardItem === "undefined") return;
+    setImageCopying(true);
+    try {
+      const dataUrl = await QRCode.toDataURL(joinUrl, { errorCorrectionLevel: "H", margin: 3, width: 520 });
+      const image = await fetch(dataUrl);
+      const blob = await image.blob();
+      await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+      setImageCopied(true);
+      window.setTimeout(() => setImageCopied(false), 1500);
+    } finally {
+      setImageCopying(false);
+    }
+  }
+
   return (
     <>
       <Dialog open={open} onOpenChange={resetDialog}>
@@ -113,7 +131,7 @@ export function CreateSessionModal() {
             <form className="mt-4 space-y-3" onSubmit={handleCreate}>
               <Input value={title} onChange={(event) => setTitle(event.target.value)} placeholder={t("titlePlaceholder")} aria-label={t("titleLabel")} maxLength={80} autoFocus />
               <Input value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 4))} placeholder={t("codePlaceholder")} aria-label={t("codeLabel")} inputMode="numeric" />
-              <Button type="submit" className="w-full" disabled={busy || !title.trim()}>{busy ? t("creating") : t("create")}</Button>
+              <Button type="submit" className="w-full" disabled={busy || !title.trim()}>{busy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}{busy ? t("creating") : t("create")}</Button>
             </form>
           ) : session ? (
             <div className="mt-4 space-y-4">
@@ -140,7 +158,11 @@ export function CreateSessionModal() {
           <DialogTitle>{t("shareTitle")}</DialogTitle>
           <DialogDescription>{t("shareDescription")}</DialogDescription>
           {joinUrl ? <div className="mt-5 rounded-[2rem] bg-white p-5 shadow-float"><QRCodeSVG value={joinUrl} size={260} level="H" includeMargin /></div> : null}
-          <div className="mt-5 grid w-full grid-cols-2 gap-3"><Button type="button" variant="outline" onClick={() => copyJoinLink()}><Copy className="h-4 w-4" />{copied ? t("copied") : t("copyLink")}</Button><Button type="button" onClick={() => shareJoinLink()}><Share2 className="h-4 w-4" />{t("sharePreview")}</Button></div>
+          <div className="mt-5 grid w-full grid-cols-3 gap-3">
+            <Button type="button" variant="outline" onClick={() => copyJoinLink()}><Copy className="h-4 w-4" />{copied ? t("copied") : t("copyLink")}</Button>
+            <Button type="button" variant="outline" disabled={imageCopying} onClick={() => copyQrImage()}>{imageCopying ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}{imageCopied ? t("imageCopied") : t("copyImage")}</Button>
+            <Button type="button" onClick={() => shareJoinLink()}><Share2 className="h-4 w-4" />{t("sharePreview")}</Button>
+          </div>
         </DialogContent>
       </Dialog>
     </>

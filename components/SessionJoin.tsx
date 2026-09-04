@@ -5,6 +5,7 @@ import { CheckCircle2, LogIn } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/components/AuthProvider";
 import { Button } from "@/components/ui/button";
+import { LoadingIndicator } from "@/components/ui/loading-indicator";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSession } from "@/context/SessionContext";
 import { joinSessionByQR } from "@/lib/firebase/sessions";
@@ -40,6 +41,6 @@ export function SessionJoin({ sessionId }: { sessionId: string }) {
     return () => { cancelled = true; };
   }, [configured, loading, sessionId, setActiveSessionId, user]);
 
-  const content = state === "signIn" ? <><CardDescription>{t("signInPrompt")}</CardDescription><Button className="mt-5 w-full" onClick={() => signIn().catch(() => setState("error"))}><LogIn className="h-4 w-4" />{t("signIn")}</Button></> : state === "joined" ? <><CheckCircle2 className="mx-auto h-12 w-12 text-emerald-400" /><CardDescription className="mt-3 text-center text-base text-slate-200">{t("checkedInTo", { title: session?.title ?? t("session") })}</CardDescription></> : state === "closed" ? <CardDescription>{t("sessionClosed")}</CardDescription> : state === "missing" ? <CardDescription>{t("notFound")}</CardDescription> : state === "error" ? <CardDescription>{t("errors.join")}</CardDescription> : <CardDescription>{state === "joining" ? t("joining") : t("loading")}</CardDescription>;
+  const content = state === "signIn" ? <><CardDescription>{t("signInPrompt")}</CardDescription><Button className="mt-5 w-full" onClick={() => signIn().catch(() => setState("error"))}><LogIn className="h-4 w-4" />{t("signIn")}</Button></> : state === "joined" ? <><CheckCircle2 className="mx-auto h-12 w-12 text-emerald-400" /><CardDescription className="mt-3 text-center text-base text-slate-200">{t("checkedInTo", { title: session?.title ?? t("session") })}</CardDescription></> : state === "closed" ? <CardDescription>{t("sessionClosed")}</CardDescription> : state === "missing" ? <CardDescription>{t("notFound")}</CardDescription> : state === "error" ? <CardDescription>{t("errors.join")}</CardDescription> : <LoadingIndicator label={state === "joining" ? t("joining") : t("loading")} />;
   return <main className="flex min-h-dvh items-center justify-center bg-slate-950 px-4 text-slate-100"><Card className="w-full max-w-sm text-center"><CardHeader><CardTitle>{t("joinTitle")}</CardTitle></CardHeader><CardContent>{content}</CardContent></Card></main>;
 }

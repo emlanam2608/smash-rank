@@ -3,12 +3,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { collection, onSnapshot, query } from "firebase/firestore";
-import { ChevronDown, LogIn, Minus, Plus, Search, Sparkles, UserPlus, Zap } from "lucide-react";
+import { ChevronDown, LoaderCircle, LogIn, Minus, Plus, Search, Sparkles, UserPlus, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/components/AuthProvider";
 import { RankBadge } from "@/components/RankBadge";
 import { Button } from "@/components/ui/button";
+import { LoadingIndicator } from "@/components/ui/loading-indicator";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useSession } from "@/context/SessionContext";
@@ -39,20 +40,24 @@ export function MatchForm() {
   const [pickerSlot, setPickerSlot] = useState<SlotKey | null>(null);
   const [search, setSearch] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [playersLoaded, setPlayersLoaded] = useState(false);
+  const [sessionsLoaded, setSessionsLoaded] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
     if (!isFirebaseConfigured() || !db) return;
     return onSnapshot(query(collection(db, USERS_COLLECTION)), (snapshot) => {
       setPlayers(snapshot.docs.map((item) => userFromSnapshot(item.id, item.data() as Record<string, unknown>)).sort((a, b) => a.displayName.localeCompare(b.displayName)));
-    });
+      setPlayersLoaded(true);
+    }, () => setPlayersLoaded(true));
   }, []);
 
   useEffect(() => {
     if (!isFirebaseConfigured() || !db) return;
     return onSnapshot(query(collection(db, SESSIONS_COLLECTION)), (snapshot) => {
       setSessions(snapshot.docs.map((item) => sessionFromSnapshot(item.id, item.data() as Record<string, unknown>)).filter((session) => session.status === "active"));
-    });
+      setSessionsLoaded(true);
+    }, () => setSessionsLoaded(true));
   }, []);
 
   useEffect(() => {
@@ -131,7 +136,7 @@ export function MatchForm() {
           <Button className="mt-5 w-full" onClick={() => signIn()}>{tAuth("signIn")}</Button>
         </div>
       ) : (
-        <form onSubmit={submitMatch} className="mt-6 space-y-5">
+        !playersLoaded || !sessionsLoaded ? <LoadingIndicator className="min-h-80" label={t("loading")} /> : <form onSubmit={submitMatch} className="mt-6 space-y-5">
           <div>
             <label htmlFor="active-session" className="mb-2 block text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">{tSession("selector")}</label>
             <div className="relative">
@@ -191,7 +196,7 @@ export function MatchForm() {
 
           {message && <p role="status" className={cn("rounded-xl px-3 py-2 text-center text-xs font-bold", message.type === "success" ? "bg-emerald-300/10 text-emerald-300" : "bg-rose-400/10 text-rose-300")}>{message.text}</p>}
           <motion.button whileTap={{ scale: 0.97 }} type="submit" disabled={submitting} className="flex h-16 w-full items-center justify-center gap-2 rounded-[1.35rem] bg-emerald-300 text-base font-black text-slate-950 shadow-[0_0_32px_rgba(52,211,153,.3)] transition-colors hover:bg-emerald-200 disabled:opacity-50">
-            <Sparkles className="h-5 w-5" />{submitting ? t("submitting") : t("submit")}
+            {submitting ? <LoaderCircle className="h-5 w-5 animate-spin" /> : <Sparkles className="h-5 w-5" />}{submitting ? t("submitting") : t("submit")}
           </motion.button>
         </form>
       )}

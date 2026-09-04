@@ -9,6 +9,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { useLocale, useTranslations } from "next-intl";
 import { useAuth } from "@/components/AuthProvider";
 import { Button } from "@/components/ui/button";
+import { LoadingIndicator } from "@/components/ui/loading-indicator";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { useSession } from "@/context/SessionContext";
 import { db } from "@/lib/firebase";
@@ -28,19 +29,24 @@ export function SessionsTab() {
   const [qrOpen, setQrOpen] = useState(false);
   const [rosterOpen, setRosterOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [sessionsLoaded, setSessionsLoaded] = useState(false);
+  const [playersLoaded, setPlayersLoaded] = useState(false);
+  const [matchesLoaded, setMatchesLoaded] = useState(false);
 
   useEffect(() => {
     if (!db || !user) return;
     return onSnapshot(query(collection(db, SESSIONS_COLLECTION), where("playerIds", "array-contains", user.uid)), (snapshot) => {
       setSessions(snapshot.docs.map((item) => sessionFromSnapshot(item.id, item.data() as Record<string, unknown>)).sort((a, b) => timestamp(b.createdAt) - timestamp(a.createdAt)));
-    });
+      setSessionsLoaded(true);
+    }, () => setSessionsLoaded(true));
   }, [user]);
 
   useEffect(() => {
     if (!db || !user) return;
     return onSnapshot(query(collection(db, USERS_COLLECTION)), (snapshot) => {
       setPlayers(snapshot.docs.map((item) => userFromSnapshot(item.id, item.data() as Record<string, unknown>)));
-    });
+      setPlayersLoaded(true);
+    }, () => setPlayersLoaded(true));
   }, [user]);
 
   const selected = sessions.find((session) => session.id === selectedId) ?? null;
@@ -48,11 +54,14 @@ export function SessionsTab() {
   useEffect(() => {
     if (!db || !selected) {
       setMatches([]);
+      setMatchesLoaded(true);
       return;
     }
+    setMatchesLoaded(false);
     return onSnapshot(query(collection(db, MATCHES_COLLECTION), where("sessionId", "==", selected.id)), (snapshot) => {
       setMatches(snapshot.docs.map((item) => ({ id: item.id, ...item.data() }) as Match).sort((a, b) => timestamp(b.createdAt) - timestamp(a.createdAt)));
-    });
+      setMatchesLoaded(true);
+    }, () => setMatchesLoaded(true));
   }, [selected]);
 
   const mvp = useMemo(() => sessionMvp(matches), [matches]);
@@ -80,7 +89,7 @@ export function SessionsTab() {
             <p className="mt-2 text-sm text-slate-400">Every court night, all in one place.</p>
           </header>
           <div className="mt-7 space-y-3">
-            {sessions.length ? sessions.map((session, index) => <SessionRow key={session.id} session={session} locale={locale} index={index} onClick={() => setSelectedId(session.id)} labels={{ active: t("active"), closed: t("closed"), players: t("players") }} />) : <div className="rounded-[2rem] border border-dashed border-white/15 bg-white/[0.03] px-6 py-14 text-center text-sm text-slate-400">{t("empty")}</div>}
+            {!sessionsLoaded ? <LoadingIndicator className="py-14" label={t("loading")} /> : sessions.length ? sessions.map((session, index) => <SessionRow key={session.id} session={session} locale={locale} index={index} onClick={() => setSelectedId(session.id)} labels={{ active: t("active"), closed: t("closed"), players: t("players") }} />) : <div className="rounded-[2rem] border border-dashed border-white/15 bg-white/[0.03] px-6 py-14 text-center text-sm text-slate-400">{t("empty")}</div>}
           </div>
         </motion.section>
       ) : (
@@ -108,14 +117,14 @@ export function SessionsTab() {
           </motion.button>
 
           <div className="mt-3 grid grid-cols-2 gap-3">
-            <StatCard icon={<CalendarDays className="h-5 w-5" />} value={String(matches.length)} label={t("totalMatches")} />
+            <StatCard icon={<CalendarDays className="h-5 w-5" />} value={matchesLoaded ? String(matches.length) : "…"} label={t("totalMatches")} />
             <StatCard icon={<Trophy className="h-5 w-5" />} value={mvp ?? "—"} label={t("mvp")} gold />
           </div>
 
           <div className="mt-6">
             <div className="mb-3 flex items-center justify-between"><h2 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">{t("history")}</h2><span className="text-[10px] font-bold text-slate-600">{matches.length} total</span></div>
             <div className="max-h-[22rem] space-y-2 overflow-y-auto pr-1">
-              {matches.length ? matches.map((match, index) => <MatchRow key={match.id} match={match} index={index} locale={locale} />) : <div className="rounded-2xl border border-dashed border-white/10 py-10 text-center text-sm text-slate-500">{t("noMatches")}</div>}
+              {!matchesLoaded ? <LoadingIndicator className="py-10" label={t("loading")} /> : matches.length ? matches.map((match, index) => <MatchRow key={match.id} match={match} index={index} locale={locale} />) : <div className="rounded-2xl border border-dashed border-white/10 py-10 text-center text-sm text-slate-500">{t("noMatches")}</div>}
             </div>
           </div>
 
@@ -135,7 +144,7 @@ export function SessionsTab() {
               <DialogTitle className="text-xl font-black">{t("playerRoster")}</DialogTitle>
               <DialogDescription className="text-sm text-slate-400">{selected.title} · {selected.playerIds.length} {t("players")}</DialogDescription>
               <div className="mt-4 max-h-[55vh] space-y-2 overflow-y-auto pr-1">
-                {sessionPlayers.map(({ id, player }, index) => (
+                {!playersLoaded ? <LoadingIndicator className="py-10" label={t("loading")} /> : sessionPlayers.map(({ id, player }, index) => (
                   <motion.div key={id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.035 }} className="flex items-center gap-3 rounded-[1.15rem] border border-white/[0.07] bg-white/[0.035] p-3">
                     <span className="w-5 text-center text-xs font-black text-slate-600">{index + 1}</span>
                     <PlayerAvatar player={player} fallback={id} className="h-11 w-11 rounded-xl" />

@@ -30,7 +30,7 @@
     "signIn": "Sign in to view sessions"
   },
   "sessionsTab": {
-    "eyebrow": "Court history", "title": "Sessions", "detail": "Session details", "players": "players", "playerRoster": "Player roster", "viewPlayers": "View all", "points": "points", "active": "Active", "closed": "Closed", "empty": "Join or create a court session to see it here.", "signInPrompt": "Sign in to see your sessions.", "signIn": "Sign in", "back": "Back to sessions", "viewQr": "View QR", "copyLink": "Copy link", "totalMatches": "Total matches", "mvp": "Session MVP", "history": "Match history", "noMatches": "No matches yet.", "useSession": "Use for match recording", "share": "Share join link"
+    "eyebrow": "Court history", "title": "Sessions", "detail": "Session details", "loading": "Loading sessions…", "players": "players", "playerRoster": "Player roster", "viewPlayers": "View all", "points": "points", "active": "Active", "closed": "Closed", "empty": "Join or create a court session to see it here.", "signInPrompt": "Sign in to see your sessions.", "signIn": "Sign in", "back": "Back to sessions", "viewQr": "View QR", "copyLink": "Copy link", "totalMatches": "Total matches", "mvp": "Session MVP", "history": "Match history", "noMatches": "No matches yet.", "useSession": "Use for match recording", "share": "Share join link"
   },
   "auth": {
     "signIn": "Sign in with Google",
@@ -79,6 +79,7 @@
     "scoreB": "Team B score",
     "submit": "Save match",
     "submitting": "Saving…",
+    "loading": "Loading court data…",
     "success": "Match saved. Rankings updated.",
     "selectPlayer": "Select player",
     "searchPlayers": "Search players",
@@ -124,6 +125,8 @@
     "shareDescription": "Scan the code, copy the link, or share its live preview.",
     "copyLink": "Copy link",
     "copied": "Copied!",
+    "copyImage": "Copy QR",
+    "imageCopied": "QR copied!",
     "sharePreview": "Share preview",
     "shareText": "Join my SmashRank court session.",
     "checkedIn": "{count} checked in",
@@ -167,6 +170,7 @@
   },
   "profile": {
     "title": "Your profile",
+    "loading": "Loading your profile…",
     "signInPrompt": "Sign in to track your badminton journey.",
     "signIn": "Sign in",
     "signOut": "Sign out",

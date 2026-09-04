@@ -9,6 +9,7 @@ import { useTranslations } from "next-intl";
 import { useAuth } from "@/components/AuthProvider";
 import { RankBadge } from "@/components/RankBadge";
 import { Button } from "@/components/ui/button";
+import { LoadingIndicator } from "@/components/ui/loading-indicator";
 import { db } from "@/lib/firebase";
 import { USERS_COLLECTION, userFromSnapshot } from "@/lib/matches";
 import type { User } from "@/lib/types";
@@ -17,15 +18,19 @@ export function ProfilePanel() {
   const t = useTranslations("profile");
   const { user, loading, configured, signIn, signOutUser } = useAuth();
   const [profile, setProfile] = useState<User | null>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
 
   useEffect(() => {
     if (!db || !user) {
       setProfile(null);
+      setProfileLoading(false);
       return;
     }
+    setProfileLoading(true);
     return onSnapshot(doc(db, USERS_COLLECTION, user.uid), (snapshot) => {
       setProfile(snapshot.exists() ? userFromSnapshot(snapshot.id, snapshot.data() as Record<string, unknown>) : null);
-    });
+      setProfileLoading(false);
+    }, () => setProfileLoading(false));
   }, [user]);
 
   if (!configured) return null;
@@ -33,6 +38,7 @@ export function ProfilePanel() {
   if (!user) {
     return <div className="rounded-[2rem] border border-white/10 bg-slate-900/50 p-7 text-center"><ShieldCheck className="mx-auto h-9 w-9 text-emerald-300" /><h1 className="mt-4 text-2xl font-black">{t("title")}</h1><p className="mt-2 text-sm text-slate-400">{t("signInPrompt")}</p><Button className="mt-6 w-full" onClick={() => signIn()}><LogIn className="h-4 w-4" />{t("signIn")}</Button></div>;
   }
+  if (profileLoading) return <LoadingIndicator className="min-h-80" label={t("loading")} />;
 
   const matches = profile?.matchesPlayed ?? 0;
   const wins = profile?.wins ?? 0;

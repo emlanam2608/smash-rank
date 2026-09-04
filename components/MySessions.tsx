@@ -6,6 +6,7 @@ import { CalendarDays, LogIn, Radio, Users } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useAuth } from "@/components/AuthProvider";
 import { Button } from "@/components/ui/button";
+import { LoadingIndicator } from "@/components/ui/loading-indicator";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSession } from "@/context/SessionContext";
 import { db } from "@/lib/firebase";
@@ -64,7 +65,7 @@ export function MySessions() {
   if (!configured) return null;
 
   if (loading) {
-    return <p className="py-10 text-center text-sm text-slate-400">{t("loading")}</p>;
+    return <LoadingIndicator className="py-10" label={t("loading")} />;
   }
 
   if (!user) {
@@ -94,7 +95,7 @@ export function MySessions() {
         <p className="mt-1 text-sm text-slate-400">{t("subtitle")}</p>
       </div>
 
-      {isLoading ? <p className="py-8 text-center text-sm text-slate-400">{t("loading")}</p> : null}
+      {isLoading ? <LoadingIndicator className="py-8" label={t("loading")} /> : null}
       {!isLoading && !hasSessions ? <EmptyState label={t("empty")} /> : null}
       {!isLoading && sortedSessions.hosted.length > 0 ? (
         <SessionGroup icon={<Radio className="h-4 w-4" />} title={t("hostedTitle")} sessions={sortedSessions.hosted} locale={locale} activeSessionId={activeSessionId} onSelect={setActiveSessionId} />
