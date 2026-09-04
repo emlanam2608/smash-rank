@@ -78,6 +78,7 @@ export function MatchForm() {
 
   const selectedSession = sessions.find((session) => session.id === selectedSessionId);
   const playerById = useMemo(() => new Map(players.map((player) => [player.id, player])), [players]);
+  const playerRankById = useMemo(() => new Map([...players].sort((a, b) => b.displayRank - a.displayRank || b.mu - a.mu).map((player, index) => [player.id, index + 1])), [players]);
   const selectedIds = useMemo(() => ACTIVE_SLOTS[matchType].map((slot) => slots[slot]).filter(Boolean), [matchType, slots]);
   const selectablePlayers = useMemo(() => selectedSession ? players.filter((player) => selectedSession.playerIds.includes(player.id)) : players, [players, selectedSession]);
   const filteredPlayers = useMemo(() => {
@@ -214,7 +215,7 @@ export function MatchForm() {
           <div className="relative mt-4"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" /><Input autoFocus value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t("searchPlayers")} className="pl-10" /></div>
           <ul className="mt-3 max-h-72 space-y-1 overflow-y-auto">
             {!players.length ? <li className="px-2 py-8 text-center text-sm text-slate-400">{t("noPlayers")}</li> : !filteredPlayers.length ? <li className="px-2 py-8 text-center text-sm text-slate-400">{t("noPlayersFound")}</li> : filteredPlayers.map((player) => (
-              <li key={player.id}><motion.button whileTap={{ scale: 0.98 }} type="button" onClick={() => { if (!pickerSlot) return; setSlots((current) => ({ ...current, [pickerSlot]: player.id })); setPickerSlot(null); setSearch(""); }} className="flex w-full items-center gap-3 rounded-2xl p-3 text-left hover:bg-white/5"><Avatar player={player} className="h-11 w-11 rounded-xl" /><span className="min-w-0 flex-1 truncate font-bold">{player.displayName}</span><RankBadge displayRank={player.displayRank} matchesPlayed={player.matchesPlayed} /></motion.button></li>
+              <li key={player.id}><motion.button whileTap={{ scale: 0.98 }} type="button" onClick={() => { if (!pickerSlot) return; setSlots((current) => ({ ...current, [pickerSlot]: player.id })); setPickerSlot(null); setSearch(""); }} className="flex w-full items-center gap-3 rounded-2xl p-3 text-left hover:bg-white/5"><Avatar player={player} className="h-11 w-11 rounded-xl" /><span className="min-w-0 flex-1 truncate font-bold">{player.displayName}</span><span className="flex shrink-0 flex-col items-end gap-1"><RankBadge displayRank={playerRankById.get(player.id) ?? 0} matchesPlayed={player.matchesPlayed} /><span className="text-[10px] font-bold tabular-nums text-emerald-300">{player.displayRank} {t("points")}</span></span></motion.button></li>
             ))}
           </ul>
         </DialogContent>

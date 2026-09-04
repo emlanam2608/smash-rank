@@ -80,6 +80,7 @@
     "submit": "Save match",
     "submitting": "Saving…",
     "loading": "Loading court data…",
+    "points": "points",
     "success": "Match saved. Rankings updated.",
     "selectPlayer": "Select player",
     "searchPlayers": "Search players",

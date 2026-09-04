@@ -8,6 +8,7 @@ import { ArrowLeft, CalendarDays, Check, ChevronRight, Clock3, Copy, LoaderCircl
 import { QRCodeSVG } from "qrcode.react";
 import { useLocale, useTranslations } from "next-intl";
 import { useAuth } from "@/components/AuthProvider";
+import { RankBadge } from "@/components/RankBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LoadingIndicator } from "@/components/ui/loading-indicator";
@@ -75,6 +76,7 @@ export function SessionsTab() {
 
   const mvp = useMemo(() => getSessionMvp(matches), [matches]);
   const playerById = useMemo(() => new Map(players.map((player) => [player.id, player])), [players]);
+  const playerRankById = useMemo(() => new Map([...players].sort((a, b) => b.displayRank - a.displayRank || b.mu - a.mu).map((player, index) => [player.id, index + 1])), [players]);
   const sessionPlayers = useMemo(() => selected?.playerIds.map((id) => ({ id, player: playerById.get(id) })) ?? [], [playerById, selected]);
   const joinUrl = selected ? `${typeof window === "undefined" ? "" : window.location.origin}/${locale}/session/${selected.id}/join` : "";
 
@@ -193,7 +195,7 @@ export function SessionsTab() {
                     <span className="w-5 text-center text-xs font-black text-slate-600">{index + 1}</span>
                     <PlayerAvatar player={player} fallback={id} className="h-11 w-11 rounded-xl" />
                     <div className="min-w-0 flex-1"><p className="truncate text-sm font-black text-slate-100">{player?.displayName ?? id}</p><p className="mt-0.5 text-[10px] font-bold text-slate-500">{player?.matchesPlayed ?? 0} matches</p></div>
-                    <div className="text-right"><p className="text-sm font-black tabular-nums text-emerald-300">{player?.displayRank ?? "—"}</p><p className="text-[9px] font-black uppercase tracking-wider text-slate-600">{t("points")}</p></div>
+                    {player ? <div className="flex shrink-0 flex-col items-end gap-1"><RankBadge displayRank={playerRankById.get(player.id) ?? 0} matchesPlayed={player.matchesPlayed} /><p className="text-[10px] font-black tabular-nums text-emerald-300">{player.displayRank} <span className="uppercase tracking-wider text-slate-600">{t("points")}</span></p></div> : <div className="text-right"><p className="text-sm font-black tabular-nums text-emerald-300">—</p><p className="text-[9px] font-black uppercase tracking-wider text-slate-600">{t("points")}</p></div>}
                   </motion.div>
                 ))}
               </div>
