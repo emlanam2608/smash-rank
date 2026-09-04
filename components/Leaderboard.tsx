@@ -114,6 +114,7 @@ export function Leaderboard() {
 }
 
 function PodiumPlayer({ player, place, isCurrent }: RankedPlayer & { isCurrent: boolean }) {
+  const t = useTranslations("leaderboard");
   const first = place === 1;
   const tone = place === 1 ? "amber" : place === 2 ? "slate" : "orange";
   return (
@@ -125,6 +126,7 @@ function PodiumPlayer({ player, place, isCurrent }: RankedPlayer & { isCurrent: 
       </div>
       <p className={cn("mt-4 w-full truncate text-center font-extrabold", first ? "text-sm" : "text-xs")}>{player.displayName}</p>
       <p className="mt-1 text-xs font-black tabular-nums text-emerald-300">{player.displayRank.toLocaleString()} <span className="text-[9px] uppercase text-slate-500">pts</span></p>
+      <p className="mt-1 text-center text-[9px] font-bold tabular-nums text-slate-500">W-L {player.wins}-{player.losses} · {player.matchesPlayed} {t("matches")}</p>
       <div className={cn("mt-3 w-full rounded-t-xl border-x border-t", first ? "h-14 border-amber-300/30 bg-amber-300/10" : place === 2 ? "h-10 border-slate-300/20 bg-slate-300/[0.06]" : "h-8 border-orange-400/25 bg-orange-400/[0.06]")}>
         {isCurrent && <Sparkles className="mx-auto mt-2 h-4 w-4 text-emerald-300" />}
       </div>

@@ -3,7 +3,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { collection, onSnapshot, query } from "firebase/firestore";
-import { ChevronDown, LoaderCircle, LogIn, Minus, Plus, Search, Sparkles, UserPlus, Zap } from "lucide-react";
+import { CheckCircle2, ChevronDown, LoaderCircle, LogIn, Minus, Plus, Search, Sparkles, UserPlus, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/components/AuthProvider";
@@ -69,6 +69,12 @@ export function MatchForm() {
     setSelectedSessionId(nextId);
     if (nextId !== activeSessionId) setActiveSessionId(nextId);
   }, [activeSessionId, sessions, setActiveSessionId]);
+
+  useEffect(() => {
+    if (message?.type !== "success") return;
+    const timeout = window.setTimeout(() => setMessage(null), 4000);
+    return () => window.clearTimeout(timeout);
+  }, [message]);
 
   const selectedSession = sessions.find((session) => session.id === selectedSessionId);
   const playerById = useMemo(() => new Map(players.map((player) => [player.id, player])), [players]);
@@ -194,7 +200,7 @@ export function MatchForm() {
             </div>
           </div>
 
-          {message && <p role="status" className={cn("rounded-xl px-3 py-2 text-center text-xs font-bold", message.type === "success" ? "bg-emerald-300/10 text-emerald-300" : "bg-rose-400/10 text-rose-300")}>{message.text}</p>}
+          {message?.type === "error" && <p role="status" className="rounded-xl bg-rose-400/10 px-3 py-2 text-center text-xs font-bold text-rose-300">{message.text}</p>}
           <motion.button whileTap={{ scale: 0.97 }} type="submit" disabled={submitting} className="flex h-16 w-full items-center justify-center gap-2 rounded-[1.35rem] bg-emerald-300 text-base font-black text-slate-950 shadow-[0_0_32px_rgba(52,211,153,.3)] transition-colors hover:bg-emerald-200 disabled:opacity-50">
             {submitting ? <LoaderCircle className="h-5 w-5 animate-spin" /> : <Sparkles className="h-5 w-5" />}{submitting ? t("submitting") : t("submit")}
           </motion.button>
@@ -213,6 +219,7 @@ export function MatchForm() {
           </ul>
         </DialogContent>
       </Dialog>
+      {message?.type === "success" ? <motion.div role="status" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="fixed inset-x-4 bottom-24 z-50 mx-auto flex max-w-sm items-center gap-3 rounded-2xl border border-emerald-300/30 bg-slate-900/95 px-4 py-3 text-sm font-bold text-emerald-200 shadow-float backdrop-blur-xl"><CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-300" />{message.text}</motion.div> : null}
     </section>
   );
 }

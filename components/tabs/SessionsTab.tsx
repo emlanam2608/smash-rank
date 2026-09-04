@@ -16,6 +16,7 @@ import { useSession } from "@/context/SessionContext";
 import { db } from "@/lib/firebase";
 import { SESSIONS_COLLECTION, sessionFromSnapshot } from "@/lib/firebase/sessions";
 import { correctSessionMatch, MATCHES_COLLECTION, USERS_COLLECTION, userFromSnapshot } from "@/lib/matches";
+import { getSessionMvp } from "@/lib/session-mvp";
 import type { Match, Session, User } from "@/lib/types";
 
 export function SessionsTab() {
@@ -35,6 +36,7 @@ export function SessionsTab() {
   const [matchesLoaded, setMatchesLoaded] = useState(false);
   const [editingMatch, setEditingMatch] = useState<Match | null>(null);
   const [deleteMatch, setDeleteMatch] = useState<Match | null>(null);
+  const [matchDetails, setMatchDetails] = useState<Match | null>(null);
   const [scoreA, setScoreA] = useState(0);
   const [scoreB, setScoreB] = useState(0);
   const [savingMatch, setSavingMatch] = useState(false);
@@ -71,7 +73,7 @@ export function SessionsTab() {
     }, () => setMatchesLoaded(true));
   }, [selected]);
 
-  const mvp = useMemo(() => sessionMvp(matches), [matches]);
+  const mvp = useMemo(() => getSessionMvp(matches), [matches]);
   const playerById = useMemo(() => new Map(players.map((player) => [player.id, player])), [players]);
   const sessionPlayers = useMemo(() => selected?.playerIds.map((id) => ({ id, player: playerById.get(id) })) ?? [], [playerById, selected]);
   const joinUrl = selected ? `${typeof window === "undefined" ? "" : window.location.origin}/${locale}/session/${selected.id}/join` : "";
@@ -166,7 +168,7 @@ export function SessionsTab() {
           <div className="mt-6">
             <div className="mb-3 flex items-center justify-between"><h2 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">{t("history")}</h2><span className="text-[10px] font-bold text-slate-600">{matches.length} total</span></div>
             <div className="max-h-[22rem] space-y-2 overflow-y-auto pr-1">
-              {!matchesLoaded ? <LoadingIndicator className="py-10" label={t("loading")} /> : matches.length ? matches.map((match, index) => <MatchRow key={match.id} match={match} index={index} locale={locale} canManage={selected.hostId === user.uid} onEdit={editMatch} onDelete={setDeleteMatch} labels={{ edit: t("editMatch"), delete: t("deleteMatch") }} />) : <div className="rounded-2xl border border-dashed border-white/10 py-10 text-center text-sm text-slate-500">{t("noMatches")}</div>}
+              {!matchesLoaded ? <LoadingIndicator className="py-10" label={t("loading")} /> : matches.length ? matches.map((match, index) => <MatchRow key={match.id} match={match} index={index} locale={locale} canManage={selected.hostId === user.uid} onOpen={setMatchDetails} onEdit={editMatch} onDelete={setDeleteMatch} labels={{ edit: t("editMatch"), delete: t("deleteMatch") }} />) : <div className="rounded-2xl border border-dashed border-white/10 py-10 text-center text-sm text-slate-500">{t("noMatches")}</div>}
             </div>
           </div>
 
@@ -195,6 +197,14 @@ export function SessionsTab() {
                   </motion.div>
                 ))}
               </div>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={matchDetails !== null} onOpenChange={(open) => !open && setMatchDetails(null)}>
+            <DialogContent>
+              <DialogTitle>{t("matchDetails")}</DialogTitle>
+              <DialogDescription>{matchDetails ? formatDate(matchDetails.createdAt, locale) : ""}</DialogDescription>
+              {matchDetails ? <div className="mt-4 space-y-4"><div className="grid grid-cols-[1fr_auto_1fr] items-center rounded-2xl bg-slate-900 px-4 py-5 text-center"><span className="text-3xl font-black text-emerald-300">{matchDetails.scoreA}</span><span className="px-5 text-xs font-black uppercase tracking-widest text-slate-500">vs</span><span className="text-3xl font-black text-sky-300">{matchDetails.scoreB}</span></div><MatchTeam members={matchDetails.teamA} tone="emerald" label={t("teamA")} gainLabel={t("ratingGain")} /><MatchTeam members={matchDetails.teamB} tone="sky" label={t("teamB")} gainLabel={t("ratingGain")} /></div> : null}
             </DialogContent>
           </Dialog>
 
@@ -230,11 +240,16 @@ function StatCard({ icon, value, label, gold = false }: { icon: React.ReactNode;
   return <div className="min-h-32 rounded-[1.4rem] border border-white/10 bg-slate-900/55 p-4"><span className={gold ? "text-amber-300" : "text-emerald-300"}>{icon}</span><p className="mt-5 truncate text-2xl font-black">{value}</p><p className="mt-1 text-[10px] font-bold text-slate-500">{label}</p></div>;
 }
 
-function MatchRow({ match, index, locale, canManage, onEdit, onDelete, labels }: { match: Match; index: number; locale: string; canManage: boolean; onEdit: (match: Match) => void; onDelete: (match: Match) => void; labels: { edit: string; delete: string } }) {
+function MatchRow({ match, index, locale, canManage, onOpen, onEdit, onDelete, labels }: { match: Match; index: number; locale: string; canManage: boolean; onOpen: (match: Match) => void; onEdit: (match: Match) => void; onDelete: (match: Match) => void; labels: { edit: string; delete: string } }) {
   const a = match.teamA.map((member) => member.displayName ?? member.userId).join(" / ");
   const b = match.teamB.map((member) => member.displayName ?? member.userId).join(" / ");
   const aWon = match.winner === "teamA";
-  return <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(index * 0.04, 0.25) }} className="rounded-[1.25rem] border border-white/[0.07] bg-white/[0.035] p-3.5"><div className="flex items-center justify-between gap-3"><div className="min-w-0 flex-1"><p className={aWon ? "truncate text-xs font-black text-slate-100" : "truncate text-xs font-bold text-slate-500"}>{a}</p><p className={!aWon ? "mt-1.5 truncate text-xs font-black text-slate-100" : "mt-1.5 truncate text-xs font-bold text-slate-500"}>{b}</p></div><div className="flex items-center gap-3"><div className="text-right text-base font-black tabular-nums"><p className={aWon ? "text-emerald-300" : "text-slate-500"}>{match.scoreA}</p><p className={!aWon ? "text-emerald-300" : "text-slate-500"}>{match.scoreB}</p></div>{canManage ? <div className="flex flex-col gap-1"><button type="button" aria-label={labels.edit} onClick={() => onEdit(match)} className="rounded p-1 text-slate-400 hover:bg-white/10 hover:text-emerald-300"><Pencil className="h-3.5 w-3.5" /></button><button type="button" aria-label={labels.delete} onClick={() => onDelete(match)} className="rounded p-1 text-slate-400 hover:bg-rose-400/10 hover:text-rose-300"><Trash2 className="h-3.5 w-3.5" /></button></div> : null}</div></div><p className="mt-2 text-[9px] font-bold uppercase tracking-wider text-slate-600">{formatDate(match.createdAt, locale)}</p></motion.div>;
+  return <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(index * 0.04, 0.25) }} role="button" tabIndex={0} onClick={() => onOpen(match)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") onOpen(match); }} className="cursor-pointer rounded-[1.25rem] border border-white/[0.07] bg-white/[0.035] p-3.5 transition-colors hover:bg-white/[0.07]"><div className="flex items-center justify-between gap-3"><div className="min-w-0 flex-1"><p className={aWon ? "truncate text-xs font-black text-slate-100" : "truncate text-xs font-bold text-slate-500"}>{a}</p><p className={!aWon ? "mt-1.5 truncate text-xs font-black text-slate-100" : "mt-1.5 truncate text-xs font-bold text-slate-500"}>{b}</p></div><div className="flex items-center gap-3"><div className="text-right text-base font-black tabular-nums"><p className={aWon ? "text-emerald-300" : "text-slate-500"}>{match.scoreA}</p><p className={!aWon ? "text-emerald-300" : "text-slate-500"}>{match.scoreB}</p></div>{canManage ? <div className="flex flex-col gap-1"><button type="button" aria-label={labels.edit} onClick={(event) => { event.stopPropagation(); onEdit(match); }} className="rounded p-1 text-slate-400 hover:bg-white/10 hover:text-emerald-300"><Pencil className="h-3.5 w-3.5" /></button><button type="button" aria-label={labels.delete} onClick={(event) => { event.stopPropagation(); onDelete(match); }} className="rounded p-1 text-slate-400 hover:bg-rose-400/10 hover:text-rose-300"><Trash2 className="h-3.5 w-3.5" /></button></div> : null}</div></div><p className="mt-2 text-[9px] font-bold uppercase tracking-wider text-slate-600">{formatDate(match.createdAt, locale)}</p></motion.div>;
+}
+
+function MatchTeam({ members, tone, label, gainLabel }: { members: Match["teamA"]; tone: "emerald" | "sky"; label: string; gainLabel: string }) {
+  const gainClass = tone === "emerald" ? "text-emerald-300" : "text-sky-300";
+  return <section><p className={`mb-2 text-[10px] font-black uppercase tracking-widest ${gainClass}`}>{label}</p><div className="space-y-2">{members.map((member) => { const gain = member.postRank - member.preRank; return <div key={member.userId} className="flex items-center justify-between rounded-xl bg-white/[0.04] px-3 py-2.5"><span className="truncate text-sm font-bold">{member.displayName ?? member.userId}</span><span className={`text-sm font-black tabular-nums ${gainClass}`}>{gain >= 0 ? "+" : ""}{gain} <span className="text-[9px] uppercase tracking-wide text-slate-500">{gainLabel}</span></span></div>; })}</div></section>;
 }
 
 function PlayerAvatar({ player, fallback, className, style }: { player?: User; fallback: string; className: string; style?: React.CSSProperties }) {
@@ -245,4 +260,3 @@ function PlayerAvatar({ player, fallback, className, style }: { player?: User; f
 
 function timestamp(value: unknown) { return value && typeof value === "object" && "toMillis" in value && typeof value.toMillis === "function" ? value.toMillis() : 0; }
 function formatDate(value: unknown, locale: string) { const stamp = timestamp(value); return stamp ? new Intl.DateTimeFormat(locale, { month: "short", day: "numeric", year: "numeric" }).format(stamp) : "—"; }
-function sessionMvp(matches: Match[]) { const wins = new Map<string, number>(); for (const match of matches) { const team = match.winner === "teamA" ? match.teamA : match.winner === "teamB" ? match.teamB : []; for (const member of team) { const name = member.displayName ?? member.userId; wins.set(name, (wins.get(name) ?? 0) + 1); } } return [...wins.entries()].sort((a, b) => b[1] - a[1])[0]?.[0]; }
