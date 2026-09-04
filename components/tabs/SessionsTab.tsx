@@ -4,17 +4,18 @@
 import { useEffect, useMemo, useState } from "react";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowLeft, CalendarDays, Check, ChevronRight, Clock3, Copy, QrCode, Share2, Trophy, Users } from "lucide-react";
+import { ArrowLeft, CalendarDays, Check, ChevronRight, Clock3, Copy, LoaderCircle, Pencil, QrCode, Share2, Trash2, Trophy, Users } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useLocale, useTranslations } from "next-intl";
 import { useAuth } from "@/components/AuthProvider";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { LoadingIndicator } from "@/components/ui/loading-indicator";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { useSession } from "@/context/SessionContext";
 import { db } from "@/lib/firebase";
 import { SESSIONS_COLLECTION, sessionFromSnapshot } from "@/lib/firebase/sessions";
-import { MATCHES_COLLECTION, USERS_COLLECTION, userFromSnapshot } from "@/lib/matches";
+import { correctSessionMatch, MATCHES_COLLECTION, USERS_COLLECTION, userFromSnapshot } from "@/lib/matches";
 import type { Match, Session, User } from "@/lib/types";
 
 export function SessionsTab() {
@@ -32,6 +33,12 @@ export function SessionsTab() {
   const [sessionsLoaded, setSessionsLoaded] = useState(false);
   const [playersLoaded, setPlayersLoaded] = useState(false);
   const [matchesLoaded, setMatchesLoaded] = useState(false);
+  const [editingMatch, setEditingMatch] = useState<Match | null>(null);
+  const [deleteMatch, setDeleteMatch] = useState<Match | null>(null);
+  const [scoreA, setScoreA] = useState(0);
+  const [scoreB, setScoreB] = useState(0);
+  const [savingMatch, setSavingMatch] = useState(false);
+  const [matchError, setMatchError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!db || !user) return;
@@ -73,6 +80,41 @@ export function SessionsTab() {
     await navigator.clipboard.writeText(joinUrl);
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1800);
+  }
+
+  function editMatch(match: Match) {
+    setEditingMatch(match);
+    setScoreA(match.scoreA);
+    setScoreB(match.scoreB);
+    setMatchError(null);
+  }
+
+  async function saveMatch() {
+    if (!editingMatch) return;
+    setSavingMatch(true);
+    setMatchError(null);
+    try {
+      await correctSessionMatch({ matchId: editingMatch.id, scoreA, scoreB });
+      setEditingMatch(null);
+    } catch {
+      setMatchError(t("matchUpdateError"));
+    } finally {
+      setSavingMatch(false);
+    }
+  }
+
+  async function removeMatch() {
+    if (!deleteMatch) return;
+    setSavingMatch(true);
+    setMatchError(null);
+    try {
+      await correctSessionMatch({ matchId: deleteMatch.id, delete: true });
+      setDeleteMatch(null);
+    } catch {
+      setMatchError(t("matchUpdateError"));
+    } finally {
+      setSavingMatch(false);
+    }
   }
 
   if (!user) {
@@ -124,7 +166,7 @@ export function SessionsTab() {
           <div className="mt-6">
             <div className="mb-3 flex items-center justify-between"><h2 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">{t("history")}</h2><span className="text-[10px] font-bold text-slate-600">{matches.length} total</span></div>
             <div className="max-h-[22rem] space-y-2 overflow-y-auto pr-1">
-              {!matchesLoaded ? <LoadingIndicator className="py-10" label={t("loading")} /> : matches.length ? matches.map((match, index) => <MatchRow key={match.id} match={match} index={index} locale={locale} />) : <div className="rounded-2xl border border-dashed border-white/10 py-10 text-center text-sm text-slate-500">{t("noMatches")}</div>}
+              {!matchesLoaded ? <LoadingIndicator className="py-10" label={t("loading")} /> : matches.length ? matches.map((match, index) => <MatchRow key={match.id} match={match} index={index} locale={locale} canManage={selected.hostId === user.uid} onEdit={editMatch} onDelete={setDeleteMatch} labels={{ edit: t("editMatch"), delete: t("deleteMatch") }} />) : <div className="rounded-2xl border border-dashed border-white/10 py-10 text-center text-sm text-slate-500">{t("noMatches")}</div>}
             </div>
           </div>
 
@@ -155,6 +197,25 @@ export function SessionsTab() {
               </div>
             </DialogContent>
           </Dialog>
+
+          <Dialog open={editingMatch !== null} onOpenChange={(open) => !open && setEditingMatch(null)}>
+            <DialogContent>
+              <DialogTitle>{t("editMatch")}</DialogTitle>
+              <DialogDescription>{t("editMatchDescription")}</DialogDescription>
+              <div className="mt-4 grid grid-cols-2 gap-3"><Input aria-label={t("teamAScore")} type="number" min="0" max="30" value={scoreA} onChange={(event) => setScoreA(Number(event.target.value))} /><Input aria-label={t("teamBScore")} type="number" min="0" max="30" value={scoreB} onChange={(event) => setScoreB(Number(event.target.value))} /></div>
+              {matchError ? <p className="mt-3 text-center text-sm text-rose-400">{matchError}</p> : null}
+              <Button className="mt-5 w-full" disabled={savingMatch} onClick={saveMatch}>{savingMatch ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}{savingMatch ? t("updatingMatch") : t("saveMatch")}</Button>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={deleteMatch !== null} onOpenChange={(open) => !open && setDeleteMatch(null)}>
+            <DialogContent>
+              <DialogTitle>{t("deleteMatch")}</DialogTitle>
+              <DialogDescription>{t("deleteMatchDescription")}</DialogDescription>
+              {matchError ? <p className="mt-3 text-center text-sm text-rose-400">{matchError}</p> : null}
+              <Button className="mt-5 w-full" variant="destructive" disabled={savingMatch} onClick={removeMatch}>{savingMatch ? <LoaderCircle className="h-4 w-4 animate-spin" /> : null}{savingMatch ? t("updatingMatch") : t("confirmDeleteMatch")}</Button>
+            </DialogContent>
+          </Dialog>
         </motion.section>
       )}
     </AnimatePresence>
@@ -169,11 +230,11 @@ function StatCard({ icon, value, label, gold = false }: { icon: React.ReactNode;
   return <div className="min-h-32 rounded-[1.4rem] border border-white/10 bg-slate-900/55 p-4"><span className={gold ? "text-amber-300" : "text-emerald-300"}>{icon}</span><p className="mt-5 truncate text-2xl font-black">{value}</p><p className="mt-1 text-[10px] font-bold text-slate-500">{label}</p></div>;
 }
 
-function MatchRow({ match, index, locale }: { match: Match; index: number; locale: string }) {
+function MatchRow({ match, index, locale, canManage, onEdit, onDelete, labels }: { match: Match; index: number; locale: string; canManage: boolean; onEdit: (match: Match) => void; onDelete: (match: Match) => void; labels: { edit: string; delete: string } }) {
   const a = match.teamA.map((member) => member.displayName ?? member.userId).join(" / ");
   const b = match.teamB.map((member) => member.displayName ?? member.userId).join(" / ");
   const aWon = match.winner === "teamA";
-  return <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(index * 0.04, 0.25) }} className="rounded-[1.25rem] border border-white/[0.07] bg-white/[0.035] p-3.5"><div className="flex items-center justify-between gap-3"><div className="min-w-0 flex-1"><p className={aWon ? "truncate text-xs font-black text-slate-100" : "truncate text-xs font-bold text-slate-500"}>{a}</p><p className={!aWon ? "mt-1.5 truncate text-xs font-black text-slate-100" : "mt-1.5 truncate text-xs font-bold text-slate-500"}>{b}</p></div><div className="flex items-center gap-3"><div className="text-right text-base font-black tabular-nums"><p className={aWon ? "text-emerald-300" : "text-slate-500"}>{match.scoreA}</p><p className={!aWon ? "text-emerald-300" : "text-slate-500"}>{match.scoreB}</p></div></div></div><p className="mt-2 text-[9px] font-bold uppercase tracking-wider text-slate-600">{formatDate(match.createdAt, locale)}</p></motion.div>;
+  return <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(index * 0.04, 0.25) }} className="rounded-[1.25rem] border border-white/[0.07] bg-white/[0.035] p-3.5"><div className="flex items-center justify-between gap-3"><div className="min-w-0 flex-1"><p className={aWon ? "truncate text-xs font-black text-slate-100" : "truncate text-xs font-bold text-slate-500"}>{a}</p><p className={!aWon ? "mt-1.5 truncate text-xs font-black text-slate-100" : "mt-1.5 truncate text-xs font-bold text-slate-500"}>{b}</p></div><div className="flex items-center gap-3"><div className="text-right text-base font-black tabular-nums"><p className={aWon ? "text-emerald-300" : "text-slate-500"}>{match.scoreA}</p><p className={!aWon ? "text-emerald-300" : "text-slate-500"}>{match.scoreB}</p></div>{canManage ? <div className="flex flex-col gap-1"><button type="button" aria-label={labels.edit} onClick={() => onEdit(match)} className="rounded p-1 text-slate-400 hover:bg-white/10 hover:text-emerald-300"><Pencil className="h-3.5 w-3.5" /></button><button type="button" aria-label={labels.delete} onClick={() => onDelete(match)} className="rounded p-1 text-slate-400 hover:bg-rose-400/10 hover:text-rose-300"><Trash2 className="h-3.5 w-3.5" /></button></div> : null}</div></div><p className="mt-2 text-[9px] font-bold uppercase tracking-wider text-slate-600">{formatDate(match.createdAt, locale)}</p></motion.div>;
 }
 
 function PlayerAvatar({ player, fallback, className, style }: { player?: User; fallback: string; className: string; style?: React.CSSProperties }) {
